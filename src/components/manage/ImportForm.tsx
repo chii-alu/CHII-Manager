@@ -18,9 +18,23 @@ type Result = {
   sample: Record<string, string | null>[];
 };
 
-export function ImportForm({ portal, interventions }: { portal: string; interventions: { id: string; name: string; pillar: string }[] }) {
+type Commit = { imported: number; already: number; rows: number; refusedCount: number; refused: { row: number; reason: string }[] };
+
+export function ImportForm({
+  portal,
+  interventions,
+  cohorts,
+}: {
+  portal: string;
+  interventions: { id: string; name: string; pillar: string }[];
+  cohorts: { id: string; label: string; intervention_id: string }[];
+}) {
   const [file, setFile] = useState<File | null>(null);
   const [interventionId, setInterventionId] = useState(interventions[0]?.id ?? "");
+  const [cohortId, setCohortId] = useState("");
+  const [checked, setChecked] = useState(false);
+  const [committed, setCommitted] = useState<Commit | null>(null);
+  const cohortOptions = cohorts.filter((c) => c.intervention_id === interventionId);
   const [kind, setKind] = useState<"participants" | "feedback">("participants");
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +96,17 @@ export function ImportForm({ portal, interventions }: { portal: string; interven
             className={input}
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
+        </label>
+        <label className={`${label} sm:col-span-3`}>
+          Cohort
+          <select className={input} value={cohortId} onChange={(e) => setCohortId(e.target.value)}>
+            <option value="">{cohortOptions.length ? "Choose a cohort" : "No cohorts for this intervention yet"}</option>
+            {cohortOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
         </label>
         <div className="sm:col-span-3">
           <button type="submit" className={btnPri} disabled={!file || busy || !interventionId}>
@@ -150,7 +175,64 @@ export function ImportForm({ portal, interventions }: { portal: string; interven
             </section>
           )}
 
-          <p className="text-sm text-muted">Committing the import is the next step. Nothing has been saved yet.</p>
+          {!committed && (
+            <section className={`${card} flex flex-col gap-3`}>
+              <h2 className="font-display text-lg font-semibold">Commit the import</h2>
+              <p className="text-sm text-muted">
+                This writes {result.valid} row{result.valid === 1 ? "" : "s"} into the chosen cohort. Rows without recorded consent are refused, and people already in the cohort are left as they are.
+              </p>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={checked} onChange={(e) => setChecked(e.target.checked)} />
+                I have checked the dry run and the column mapping
+              </label>
+              <div>
+                <button
+                  type="button"
+                  className={btnPri}
+                  disabled={!file || !cohortId || !checked || busy || result.valid === 0}
+                  onClick={async () => {
+                    if (!file) return;
+                    setBusy(true);
+                    setError(null);
+                    const body = new FormData();
+                    body.append("file", file);
+                    body.append("kind", kind);
+                    body.append("interventionId", interventionId);
+                    body.append("cohortId", cohortId);
+                    body.append("mapping", JSON.stringify(result.mapping));
+                    const res = await fetch(`/api/import/${pillar}/commit`, { method: "POST", body });
+                    const json = await res.json().catch(() => ({ ok: false, error: "Something went wrong." }));
+                    setBusy(false);
+                    if (!res.ok || !json.ok) {
+                      setError(json.error ?? "The import could not be completed.");
+                      return;
+                    }
+                    setCommitted(json.data as Commit);
+                  }}
+                >
+                  {busy ? "Importing…" : "Import into this cohort"}
+                </button>
+              </div>
+            </section>
+          )}
+
+          {committed && (
+            <section className={`${card} flex flex-col gap-2 text-sm`}>
+              <h2 className="font-display text-lg font-semibold">Import finished</h2>
+              <p>
+                {committed.imported} imported, {committed.already} already in this cohort, {committed.refusedCount} refused.
+              </p>
+              {committed.refused.length > 0 && (
+                <ul className="flex flex-col gap-1">
+                  {committed.refused.map((r) => (
+                    <li key={r.row}>
+                      Row {r.row}: {r.reason}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
         </div>
       )}
     </div>

@@ -11,6 +11,8 @@ export default async function ImportPage({ params }: { params: Promise<{ portal:
   const pillars = portal === "admin" ? (["HENT", "HEMP", "HECO"] as const) : pillarsForPortal(portal);
   const { data: ivs } = await supabase.from("interventions").select("id, name, pillar").in("pillar", [...pillars]).eq("active", true).order("name");
   const interventions = (ivs ?? []) as { id: string; name: string; pillar: string }[];
+  const { data: cohortRows } = await supabase.from("cohort").select("id, label, intervention_id").order("label");
+  const cohorts = (cohortRows ?? []) as { id: string; label: string; intervention_id: string }[];
 
   return (
     <section className="flex flex-col gap-6">
@@ -20,7 +22,7 @@ export default async function ImportPage({ params }: { params: Promise<{ portal:
           Upload a CSV or XLSX file of registrations or feedback. The dry run checks every row and shows what would be imported. Nothing is saved until you confirm.
         </p>
       </div>
-      <ImportForm portal={portal} interventions={interventions} />
+      <ImportForm portal={portal} interventions={interventions} cohorts={cohorts} />
     </section>
   );
 }
