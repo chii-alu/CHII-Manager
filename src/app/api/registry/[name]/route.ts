@@ -54,7 +54,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "The registry could not be exported." }, { status: 500 });
   }
 
-  const csv = toCsv([...registry.columns], (data ?? []) as unknown as Record<string, unknown>[]);
+  // The column called "cohort" in the database is "session title" in the file.
+  const heading = (c: string) => (c === "cohort" ? "session title" : c);
+  const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) =>
+    Object.fromEntries(Object.entries(r).map(([k, v]) => [heading(k), v])),
+  );
+  const csv = toCsv(registry.columns.map(heading), rows);
   return new NextResponse(csv, {
     headers: {
       "content-type": "text/csv; charset=utf-8",

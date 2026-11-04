@@ -13,6 +13,9 @@ const TABS = [
 
 type Row = Record<string, string | number | null>;
 
+// What a column is called on screen. The database column stays "cohort".
+const headerFor = (column: string) => (column === "cohort" ? "session title" : column.replace(/_/g, " "));
+
 // The CHII registries across pillars. What each person sees is decided by the database; this page only filters it.
 export default async function ChiiRegistryPage({
   params,
@@ -83,9 +86,9 @@ export default async function ChiiRegistryPage({
           </select>
         </label>
         <label className="flex flex-col gap-1 text-sm font-semibold">
-          Cohort
+          Session title
           <select name="cohort" defaultValue={cohort ?? ""} className={input}>
-            <option value="">All cohorts</option>
+            <option value="">All session titles</option>
             {cohorts.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
@@ -104,7 +107,7 @@ export default async function ChiiRegistryPage({
           <thead className="bg-brand text-left text-xs font-semibold text-on-accent">
             <tr>
               {Object.keys(rows[0] ?? Object.fromEntries(tab.columns.split(", ").map((c) => [c, null]))).map((c) => (
-                <th key={c} className="whitespace-nowrap px-3 py-2">{c.replace(/_/g, " ")}</th>
+                <th key={c} className="whitespace-nowrap px-3 py-2">{headerFor(c)}</th>
               ))}
             </tr>
           </thead>

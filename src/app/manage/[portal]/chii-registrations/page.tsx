@@ -62,7 +62,7 @@ export default async function ChiiRegistrationsPage({ params }: { params: Promis
       </div>
 
       {rows.length === 0 ? (
-        <div className={`${card} text-center text-muted`}>No cohorts yet.</div>
+        <div className={`${card} text-center text-muted`}>No session titles yet.</div>
       ) : (
         rows.map((r) => (
           <div key={r.cohort.id} className={`${card} flex flex-col gap-4`}>
