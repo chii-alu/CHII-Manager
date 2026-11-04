@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { toCsv } from "@/lib/csv";
 import { todayIso } from "@/lib/dates";
+import { toXlsx } from "@/lib/export/xlsx";
 import { PORTALS } from "@/lib/auth/portals";
 
 export const runtime = "nodejs";
@@ -59,6 +60,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) =>
     Object.fromEntries(Object.entries(r).map(([k, v]) => [heading(k), v])),
   );
+  if (search.get("format") === "xlsx") {
+    const xlsx = await toXlsx(name, registry.columns.map(heading), rows);
+    return new NextResponse(new Uint8Array(xlsx), {
+      headers: {
+        "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "content-disposition": `attachment; filename="mela-${name}-registry-${todayIso()}.xlsx"`,
+        "cache-control": "no-store",
+      },
+    });
+  }
+
   const csv = toCsv(registry.columns.map(heading), rows);
   return new NextResponse(csv, {
     headers: {

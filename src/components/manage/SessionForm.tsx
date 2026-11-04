@@ -111,7 +111,7 @@ export function SessionForm({
         Session dates <span className="text-bad-ink">*</span>
         <input className={input} placeholder="2026-11-12, 2026-11-19" {...register("datesText")} />
         <span className="text-sm font-normal text-muted">
-          One date for a single event. Several dates (comma separated) for multi-day events or cohort meetings. Attendance is taken for each.
+          One date for a single event. Several dates (comma separated) for multi-day events or session meetings. Attendance is taken for each.
         </span>
         {errors.datesText && <span className={fieldError}>{errors.datesText.message}</span>}
       </label>

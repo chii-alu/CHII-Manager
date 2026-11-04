@@ -96,6 +96,7 @@ export default async function ChiiRegistryPage({
         </label>
         <button type="submit" className={btnSm}>Apply</button>
         <a href={csvHref} className={btnSm}>Download CSV</a>
+        <a href={`${csvHref}&format=xlsx`} className={btnSm}>Download XLSX</a>
       </form>
 
       <p className="text-sm text-muted">
