@@ -41,3 +41,21 @@ describe("pillar defaults (SPEC §5)", () => {
     expect(rubricWeightWarning([30, 30])).toBe("Weights add up to 60%, not 100%.");
   });
 });
+
+describe("field-linked questions", () => {
+  const q = (id: string) => ({ id, label: `Question ${id}`, type: "text" as const, required: false });
+
+  it("refuses the same field twice in one form", async () => {
+    const { questionsSchema } = await import("./questions");
+    expect(questionsSchema.safeParse([q("venture_stage"), q("venture_stage")]).success).toBe(false);
+    expect(questionsSchema.safeParse([q("venture_stage"), q("employment_status")]).success).toBe(true);
+  });
+
+  it("accepts only field keys in the dictionary format", async () => {
+    const { FIELD_KEY_PATTERN } = await import("./questions");
+    expect(FIELD_KEY_PATTERN.test("venture_stage")).toBe(true);
+    expect(FIELD_KEY_PATTERN.test("Venture Stage")).toBe(false);
+    expect(FIELD_KEY_PATTERN.test("1st_choice")).toBe(false);
+    expect(FIELD_KEY_PATTERN.test("bad-key")).toBe(false);
+  });
+});

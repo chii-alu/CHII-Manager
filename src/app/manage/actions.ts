@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { defaultFeedbackQuestions, defaultIntakeQuestions, DEFAULT_RUBRIC, type Pillar, type SessionKind } from "@/lib/forms/defaults";
 import { formKindSchema, formStatusSchema, questionsSchema, rubricSchema, sessionInputSchema, type SessionInput } from "@/lib/sessions/schema";
-import type { Question } from "@/lib/forms/questions";
+import { FIELD_KEY_PATTERN, type Question } from "@/lib/forms/questions";
 import { z } from "zod";
 import { ENTRY_STATUSES, type EntryStatus } from "@/lib/sessions/status";
 import { formatDate, formatDateRange, isIsoDate } from "@/lib/dates";
@@ -161,7 +161,7 @@ export async function deleteSession(sessionId: string): Promise<ActionResult<{ i
 
 export async function setFormStatus(
   sessionId: string,
-  kind: "intake" | "attendance" | "feedback",
+  kind: "intake" | "attendance" | "feedback" | "employer_feedback",
   status: string,
 ): Promise<ActionResult> {
   const supabase = await signedInClient();
@@ -514,4 +514,51 @@ export async function addIntervention(pillar: string, name: string, type: string
 
   revalidatePath("/manage", "layout");
   return { ok: true, data: { id: data.id } };
+}
+
+const FIELD_TYPES = ["text", "long", "number", "date", "single", "multi", "scale10", "yesno", "email"] as const;
+const newFieldSchema = z
+  .object({
+    key: z.string().trim().regex(FIELD_KEY_PATTERN, "Use lowercase letters, numbers and underscores, starting with a letter."),
+    label: z.string().trim().min(1, "Give the field a label.").max(200),
+    type: z.enum(FIELD_TYPES),
+    options: z.array(z.string().trim().min(1).max(120)).max(30),
+    domain: z.enum(["registration", "feedback"]),
+    // A pillar's own field, or a shared field (null), which only admins can create.
+    pillar: z.enum(["HENT", "HEMP", "HECO"]).nullable(),
+  })
+  .superRefine((f, ctx) => {
+    if ((f.type === "single" || f.type === "multi") && f.options.length === 0) {
+      ctx.addIssue({ code: "custom", path: ["options"], message: "Add at least one option." });
+    }
+  });
+
+export async function createField(input: unknown): Promise<ActionResult<{ key: string }>> {
+  const supabase = await signedInClient();
+  if (!supabase) return fail("Please sign in again.");
+
+  const parsed = newFieldSchema.safeParse(input);
+  if (!parsed.success) return fail(parsed.error.issues[0].message);
+  const f = parsed.data;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { error } = await supabase.from("field").insert({
+    field_key: f.key,
+    label: f.label,
+    type: f.type,
+    options: f.options,
+    domain: f.domain,
+    scope: f.pillar ? "pillar" : "global",
+    pillar: f.pillar,
+    created_by: user?.id ?? null,
+  });
+  if (error) {
+    if (error.code === "23505") return fail("A field with that key already exists. Choose it from the list.");
+    return fail(explain(error));
+  }
+
+  revalidatePath("/manage", "layout");
+  return { ok: true, data: { key: f.key } };
 }

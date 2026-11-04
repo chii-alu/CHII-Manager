@@ -95,7 +95,7 @@ export function PublicForm({
 
 function submitLabel(kind: PublicFormKind, selective: boolean) {
   if (kind === "attendance") return "Check in";
-  if (kind === "feedback") return "Send feedback";
+  if (kind === "feedback" || kind === "employer_feedback") return "Send feedback";
   return selective ? "Submit application" : "Register";
 }
 
@@ -105,7 +105,7 @@ function Success({ kind, selective, result }: { kind: PublicFormKind; selective:
 
   if (kind === "attendance") {
     heading = "Checked in. Welcome!";
-  } else if (kind === "feedback") {
+  } else if (kind === "feedback" || kind === "employer_feedback") {
     heading = "Thank you for your feedback.";
     detail = "Your response is linked to your attendance record.";
   } else if (selective) {

@@ -12,7 +12,7 @@ const LIMIT_PER_MINUTE = 20;
 
 type PublicForm = {
   code: string;
-  kind: "intake" | "attendance" | "feedback";
+  kind: "intake" | "attendance" | "feedback" | "employer_feedback";
   status: "draft" | "open" | "closed";
   questions: unknown;
   template: string | null;
@@ -86,6 +86,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       p_code: code,
       p_profile: profile,
       p_answers: registration,
+    });
+    if (rpcError) return fromDbError(rpcError);
+    return NextResponse.json({ ok: true, data });
+  }
+
+  // A feedback form built from a template: its own questions, saved with the person's feedback.
+  if ((f.kind === "feedback" || f.kind === "employer_feedback") && f.template === "feedback_template") {
+    const templated = validateAnswers((f.questions ?? []) as FieldSpec[], values);
+    if (!templated.success) return validationError(templated.error.issues);
+    const answers = templated.data as Record<string, unknown>;
+    const who = f.kind === "employer_feedback" ? answers.student_email : answers.email;
+    const { data, error: rpcError } = await supabase.rpc("submit_template_feedback", {
+      p_code: code,
+      p_email: typeof who === "string" ? who : "",
+      p_answers: answers,
     });
     if (rpcError) return fromDbError(rpcError);
     return NextResponse.json({ ok: true, data });

@@ -16,7 +16,7 @@ export type FieldSpec = {
   emailDomains?: string[];
 };
 
-export type PublicFormKind = "intake" | "attendance" | "feedback";
+export type PublicFormKind = "intake" | "attendance" | "feedback" | "employer_feedback";
 
 const fromQuestion = (q: Question): FieldSpec => ({
   id: q.id,

@@ -14,8 +14,10 @@ beforeAll(async () => {
 
 describe("field dictionary", () => {
   it("seeds the 16 core feedback fields and the core profile fields", async () => {
-    const fb = await db.query<{ n: number }>("select count(*)::int n from field where domain = 'feedback' and scope = 'global'");
-    expect(fb.rows[0].n).toBe(16);
+    const shared = await db.query<{ n: number }>(
+      "select count(*)::int n from field where field_key in ('completed','internship_name','relevance','quality','usefulness','role_clarity','supervision','skills_applied','confidence','gains','top_skills','next_action','support_needed','nps','most_valuable','improvements')",
+    );
+    expect(shared.rows[0].n).toBe(16);
     const profile = await db.query<{ field_key: string; restricted: boolean }>("select field_key, restricted from field where domain = 'profile'");
     expect(profile.rows.map((r) => r.field_key)).toEqual(expect.arrayContaining(["email", "student_id", "financial_status", "nationality"]));
     expect(profile.rows.find((r) => r.field_key === "email")?.restricted).toBe(true);
@@ -80,11 +82,12 @@ describe("response values", () => {
 describe("feedback templates", () => {
   it("seeds the HealthX template for Career Workshops and the Internship template for Internships", async () => {
     const r = await db.query<{ name: string; title: string; n: number }>(
-      "select i.name, t.title, jsonb_array_length(t.questions)::int n from feedback_template t join interventions i on i.id = t.intervention_id order by i.name",
+      "select i.name, t.title, jsonb_array_length(t.questions)::int n from feedback_template t join interventions i on i.id = t.intervention_id where t.audience = 'intern' order by i.name",
     );
     expect(r.rows).toEqual([
-      { name: "Career Workshops", title: "HealthX feedback", n: 11 },
-      { name: "Internships", title: "Internship feedback", n: 14 },
+      { name: "Career Workshops", title: "HealthX feedback", n: 12 },
+      { name: "Internships", title: "Internship feedback", n: 15 },
+      { name: "SIE", title: "SIE feedback", n: 12 },
     ]);
   });
 
@@ -103,3 +106,78 @@ describe("feedback templates", () => {
     expect(still.rows).toHaveLength(1);
   });
 });
+
+describe("employer feedback template", () => {
+  it("the internship intern and employer templates are separate", async () => {
+    const r = await db.query<{ audience: string; n: number }>(
+      "select t.audience, jsonb_array_length(t.questions)::int n from feedback_template t join interventions i on i.id = t.intervention_id where i.name = 'Internships' order by t.audience",
+    );
+    expect(r.rows).toEqual([
+      { audience: "employer", n: 21 },
+      { audience: "intern", n: 15 },
+    ]);
+  });
+
+  it("an intervention has one template per audience", async () => {
+    await expect(
+      db.query("insert into feedback_template (intervention_id, audience, title, questions) select id, 'intern', 'dup', '[]' from interventions where name = 'Internships'"),
+    ).rejects.toThrow(/duplicate key/);
+  });
+});
+
+describe("template feedback forms", () => {
+  let session: string;
+  let student: string;
+  let internEmail: string;
+
+  beforeAll(async () => {
+    const iv = (await db.query<{ id: string; pillar: string }>("select id, pillar::text from interventions where name = 'Internships' and pillar = 'HEMP'")).rows[0];
+    // A new session gets an employer form beside its intern form, and its intern form uses the template.
+    await db.exec(`insert into sessions (intervention_id, pillar, kind, title, dates) values ('${iv.id}', 'HEMP', 'registration', 'Internship test round', array['2027-02-01']::date[]);`);
+    session = (await db.query<{ id: string }>("select id from sessions where title = 'Internship test round'")).rows[0].id;
+    await db.exec(`insert into forms (session_id, kind, code, status, questions) values ('${session}', 'feedback', 'HEMP-TEST-FBK', 'open', '[]');`);
+    internEmail = "intern.one@example.org";
+    student = (await db.query<{ id: string }>(
+      `insert into participants (pid, name, email) values ('TEST-0001', 'Intern One', '${internEmail}') returning id`,
+    )).rows[0].id;
+    await db.exec(`insert into attendance (session_id, participant_id, date) values ('${session}', '${student}', '2027-02-01');
+      insert into entries (session_id, participant_id, status) values ('${session}', '${student}', 'selected');`);
+  });
+
+  it("a new internship session gets an employer form, and its feedback form uses the intern template", async () => {
+    const r = await db.query<{ kind: string; template: string | null; code: string }>(
+      "select kind::text, template, code from forms where session_id = $1 order by kind::text",
+      [session],
+    );
+    expect(r.rows.map((f) => f.kind)).toEqual(["employer_feedback", "feedback"]);
+    expect(r.rows.find((f) => f.kind === "employer_feedback")?.code).toMatch(/^HEMP-I-\d{3}-EMP$/);
+    expect(r.rows.find((f) => f.kind === "feedback")?.template).toBe("feedback_template");
+  });
+
+  it("the public lookup returns the intern template's questions for a feedback form", async () => {
+    const r = await asAnon(db, "select public.get_public_form('HEMP-TEST-FBK') as f");
+    expect(r.rows[0].f.template).toBe("feedback_template");
+  });
+
+  it("records an intern's feedback for a person who attended", async () => {
+    const r = await asAnon(db, "select public.submit_template_feedback('HEMP-TEST-FBK', $1, $2::jsonb) as r", [internEmail, JSON.stringify({ email: internEmail, nps: 9, relevance: "Very relevant" })]);
+    expect(r.rows[0].r).toEqual({ recorded: true });
+    const rows = await db.query<{ nps: number }>("select nps from feedback where session_id = $1", [session]);
+    expect(rows.rows[0].nps).toBe(9);
+  });
+
+  it("refuses an intern who did not attend, and a second response", async () => {
+    await expect(asAnon(db, "select public.submit_template_feedback('HEMP-TEST-FBK', 'nobody@example.org', '{}'::jsonb)")).rejects.toThrow(/no attendance record/);
+    await expect(asAnon(db, "select public.submit_template_feedback('HEMP-TEST-FBK', $1, '{}'::jsonb)", [internEmail])).rejects.toThrow(/already been recorded/);
+  });
+
+  it("records an employer's feedback about a registered student, and keeps it apart from the intern's", async () => {
+    const emp = (await db.query<{ code: string }>("select code from forms where session_id = $1 and kind = 'employer_feedback'", [session])).rows[0].code;
+    await db.exec("update forms set status = 'open' where code = '" + emp + "'");
+    const r = await asAnon(db, "select public.submit_template_feedback($1, $2, $3::jsonb) as r", [emp, internEmail, JSON.stringify({ student_email: internEmail, performance_rating: 8 })]);
+    expect(r.rows[0].r).toEqual({ recorded: true });
+    const rows = await db.query<{ n: number }>("select count(*)::int n from employer_feedback where session_id = $1", [session]);
+    expect(rows.rows[0].n).toBe(1);
+  });
+});
+

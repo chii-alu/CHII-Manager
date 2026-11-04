@@ -47,6 +47,26 @@ export const questionSchema = z
     }
   });
 
-export const questionsSchema = z.array(questionSchema).max(50);
+// Field keys: lowercase letters, numbers and underscores, starting with a letter (matches the field dictionary).
+export const FIELD_KEY_PATTERN = /^[a-z][a-z0-9_]{0,62}$/;
+
+// A field can be asked once per form, so each question id must be different.
+export const questionsSchema = z.array(questionSchema).max(50).superRefine((qs, ctx) => {
+  const seen = new Set<string>();
+  qs.forEach((q, i) => {
+    if (seen.has(q.id)) ctx.addIssue({ code: "custom", path: [i, "id"], message: "Each field can be used once per form." });
+    seen.add(q.id);
+  });
+});
+
+// A field from the dictionary, as the form editor shows it.
+export type FieldOption = {
+  key: string;
+  label: string;
+  type: QuestionType;
+  options: string[];
+  scope: "global" | "pillar" | "intervention";
+  pillar: string | null;
+};
 
 export type Question = z.infer<typeof questionSchema>;

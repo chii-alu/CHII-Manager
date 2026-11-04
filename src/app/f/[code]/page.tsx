@@ -32,6 +32,7 @@ const KIND_TITLE: Record<PublicFormKind, string> = {
   intake: "Registration",
   attendance: "Check-in",
   feedback: "Feedback",
+  employer_feedback: "Employer feedback",
 };
 
 export default async function PublicFormPage({ params }: { params: Promise<{ code: string }> }) {
@@ -88,6 +89,10 @@ export default async function PublicFormPage({ params }: { params: Promise<{ cod
 }
 
 function buildFields(form: PublicFormData): FieldSpec[] {
+  // A feedback template is the whole form, and the lookup returns its questions.
+  if ((form.kind === "feedback" || form.kind === "employer_feedback") && form.template === "feedback_template") {
+    return (form.questions ?? []) as FieldSpec[];
+  }
   // A masterclass template is the whole form: no standard questions are added.
   if (form.kind === "intake" && form.template === MASTERCLASS_TEMPLATE_ID) return form.questions as FieldSpec[];
   const questions = questionsSchema.safeParse(form.questions);

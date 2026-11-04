@@ -9,11 +9,12 @@ import type { Question } from "@/lib/forms/questions";
 import { QuestionEditor } from "./QuestionEditor";
 import { ShareDialog } from "./ShareDialog";
 import { PreviewDialog } from "./PreviewDialog";
+import type { FieldOption } from "@/lib/forms/questions";
 
 export const FORM_STATUS_LABEL = { draft: "Draft", open: "Open", closed: "Closed" } as const;
 const STATUS_CLASS = { draft: "bg-sunk text-muted", open: "bg-ok-soft text-ok-ink", closed: "bg-bad-soft text-bad-ink" } as const;
 
-export type FormKind = "intake" | "attendance" | "feedback";
+export type FormKind = "intake" | "attendance" | "feedback" | "employer_feedback";
 export type FormStatus = keyof typeof FORM_STATUS_LABEL;
 
 export function FormCard({
@@ -30,6 +31,9 @@ export function FormCard({
   core,
   previewFields,
   locked = false,
+  fields = [],
+  pillar = "",
+  canCreateGlobal = false,
 }: {
   sessionId: string;
   sessionTitle: string;
@@ -45,6 +49,10 @@ export function FormCard({
   previewFields: FieldSpec[];
   // A form built from a fixed template: it can be previewed and shared, but its questions cannot be edited here.
   locked?: boolean;
+  // The dictionary fields this form may use, and where new fields for it go.
+  fields?: FieldOption[];
+  pillar?: string;
+  canCreateGlobal?: boolean;
 }) {
   const router = useRouter();
   const [current, setCurrent] = useState<FormStatus>(status);
@@ -117,7 +125,7 @@ export function FormCard({
         </button>
       </div>
 
-      {editable && (
+      {editable && kind !== "employer_feedback" && (
         <QuestionEditor
           open={editOpen}
           onClose={() => setEditOpen(false)}
@@ -127,6 +135,9 @@ export function FormCard({
           sessionTitle={sessionTitle}
           core={core ?? []}
           initial={customQuestions ?? []}
+          fields={fields}
+          pillar={pillar}
+          canCreateGlobal={canCreateGlobal}
         />
       )}
       <PreviewDialog
