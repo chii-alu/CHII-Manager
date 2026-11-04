@@ -86,6 +86,7 @@ describe("feedback templates", () => {
     );
     expect(r.rows).toEqual([
       { name: "Career Workshops", title: "Career Workshops feedback", n: 13 },
+      { name: "Exposure Events", title: "Exposure Events feedback", n: 13 },
       { name: "Internships", title: "Internship feedback", n: 16 },
       { name: "SIE", title: "SIE feedback", n: 13 },
     ]);
@@ -198,6 +199,18 @@ describe("career workshop feedback wording", () => {
     expect(r.rows[0].title).toBe("Career Workshops feedback");
     expect(r.rows[0].text).toContain("Career Workshop programme");
     expect(r.rows[0].text).not.toContain("HealthX");
+  });
+});
+
+describe("exposure events feedback", () => {
+  it("uses the Career Workshops questions, worded for Exposure Events", async () => {
+    const r = await db.query<{ title: string; n: number; text: string }>(
+      "select t.title, jsonb_array_length(t.questions)::int n, t.questions::text as text from feedback_template t join interventions i on i.id = t.intervention_id where i.name = 'Exposure Events' and t.audience = 'intern'",
+    );
+    expect(r.rows[0].title).toBe("Exposure Events feedback");
+    expect(r.rows[0].n).toBe(13);
+    expect(r.rows[0].text).toContain("Exposure Event programme");
+    expect(r.rows[0].text).not.toContain("Career Workshop");
   });
 });
 
