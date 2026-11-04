@@ -85,9 +85,9 @@ describe("feedback templates", () => {
       "select i.name, t.title, jsonb_array_length(t.questions)::int n from feedback_template t join interventions i on i.id = t.intervention_id where t.audience = 'intern' order by i.name",
     );
     expect(r.rows).toEqual([
-      { name: "Career Workshops", title: "HealthX feedback", n: 12 },
-      { name: "Internships", title: "Internship feedback", n: 15 },
-      { name: "SIE", title: "SIE feedback", n: 12 },
+      { name: "Career Workshops", title: "HealthX feedback", n: 13 },
+      { name: "Internships", title: "Internship feedback", n: 16 },
+      { name: "SIE", title: "SIE feedback", n: 13 },
     ]);
   });
 
@@ -113,8 +113,8 @@ describe("employer feedback template", () => {
       "select t.audience, jsonb_array_length(t.questions)::int n from feedback_template t join interventions i on i.id = t.intervention_id where i.name = 'Internships' order by t.audience",
     );
     expect(r.rows).toEqual([
-      { audience: "employer", n: 21 },
-      { audience: "intern", n: 15 },
+      { audience: "employer", n: 22 },
+      { audience: "intern", n: 16 },
     ]);
   });
 
@@ -178,6 +178,15 @@ describe("template feedback forms", () => {
     expect(r.rows[0].r).toEqual({ recorded: true });
     const rows = await db.query<{ n: number }>("select count(*)::int n from employer_feedback where session_id = $1", [session]);
     expect(rows.rows[0].n).toBe(1);
+  });
+});
+
+describe("feedback consent", () => {
+  it("every feedback template asks for consent, as a required question", async () => {
+    const r = await db.query<{ audience: string; ok: boolean }>(
+      "select audience, bool_or(q->>'id' = 'consent' and q->>'type' = 'consent' and (q->>'required')::boolean) as ok from feedback_template, jsonb_array_elements(questions) q group by audience",
+    );
+    expect(r.rows.every((x) => x.ok)).toBe(true);
   });
 });
 

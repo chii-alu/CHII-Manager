@@ -32,6 +32,12 @@ export const INTAKE_CORE: FieldSpec[] = [
 
 export const FEEDBACK_CORE: FieldSpec[] = [
   { id: "email", label: "Email you registered with", type: "email", required: true },
+  {
+    id: "consent",
+    label: "I consent to my information being used to run this programme and for monitoring, evaluation and learning.",
+    type: "consent",
+    required: true,
+  },
   { id: "sat", label: "Overall, how satisfied are you with this session?", type: "rating", required: true },
   { id: "rel", label: "How relevant was the content to your goals?", type: "rating", required: true },
   { id: "nps", label: "How likely are you to recommend this to a friend or colleague?", type: "scale10", required: true },
