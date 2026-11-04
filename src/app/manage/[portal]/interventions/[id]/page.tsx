@@ -8,6 +8,7 @@ import { TypeSelect } from "@/components/manage/TypeSelect";
 import { PillarChip, StatusChip, TypeChip } from "@/components/manage/Chips";
 import { card } from "@/components/ui/styles";
 import { inPortal } from "@/lib/auth/portals";
+import { PageBand } from "@/components/ui/page-band";
 
 type SessionRow = {
   id: string;
@@ -88,13 +89,14 @@ export default async function InterventionPage({ params }: { params: Promise<{ p
             <PillarChip pillar={iv.pillar} />
             <TypeChip type={iv.type} />
           </div>
-          <h1 className="mt-2 font-display text-3xl font-semibold">{iv.name}</h1>
-          <p className="mt-2 max-w-2xl text-muted">
+          <PageBand title={iv.name}>
+          <p className="max-w-2xl">
             {selective
               ? "Application → Selection → Attendance → Feedback."
               : "Registration → Attendance → Feedback."}{" "}
             Each new session gets its own copy of these forms, which you can then edit for that session.
           </p>
+          </PageBand>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin && <TypeSelect interventionId={iv.id} type={iv.type} />}

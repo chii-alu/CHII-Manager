@@ -55,19 +55,18 @@ export default async function ManageLayout({
   }));
 
   return (
-    <div className="grid min-h-screen grid-cols-1 md:grid-cols-[270px_1fr]">
-      <aside className="border-b border-line bg-surface p-3 md:sticky md:top-0 md:h-screen md:overflow-y-auto md:border-b-0 md:border-r">
+    <div className="grid min-h-screen grid-cols-1 md:grid-cols-[auto_minmax(0,1fr)]">
+      <aside className="sidebar border-b border-[#1B3A73] bg-[#102C5E] p-3 md:sticky md:top-0 md:h-screen md:overflow-x-hidden md:overflow-y-auto md:border-b-0 md:border-r md:border-[#1B3A73]">
         <ManageNav
           portal={requested}
           pillars={pillars}
           heading={heading}
-          subtitle={requested === "admin" ? "Intervention Manager" : undefined}
           signOutAction={signOut}
           isAdmin={isAdmin}
           showStaffAccess={isAdmin && requested === "admin"}
         />
       </aside>
-      <main className="min-w-0 px-6 py-6 md:px-8">{children}</main>
+      <main className="min-w-0 px-3 pb-6 pt-4 sm:px-4 md:px-5 md:pt-5">{children}</main>
     </div>
   );
 }

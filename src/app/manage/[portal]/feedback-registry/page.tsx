@@ -6,6 +6,7 @@ import { PORTAL_COPY } from "@/lib/portal-copy";
 import { PillarChip } from "@/components/manage/Chips";
 import { formatDate } from "@/lib/dates";
 import { card } from "@/components/ui/styles";
+import { PageBand } from "@/components/ui/page-band";
 
 type FeedbackRow = {
   satisfaction: number;
@@ -39,10 +40,9 @@ export default async function FeedbackRegistryPage({ params }: { params: Promise
 
   return (
     <section className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl font-semibold">Feedback registry</h1>
+      <PageBand title="Feedback registry">
         <p className="mt-2 max-w-2xl text-muted">{copy.feedback}</p>
-      </div>
+      </PageBand>
 
       {rows.length === 0 ? (
         <div className={`${card} text-center text-muted`}>No feedback responses yet.</div>

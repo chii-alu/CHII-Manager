@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { RegistryTable, type RegistryRow } from "@/components/manage/RegistryTable";
 import { isPortal, pillarsForPortal } from "@/lib/auth/portals";
 import { PORTAL_COPY } from "@/lib/portal-copy";
+import { PageBand } from "@/components/ui/page-band";
 
 export default async function RegistryPage({ params }: { params: Promise<{ portal: string }> }) {
   const { portal } = await params;
@@ -37,12 +38,11 @@ export default async function RegistryPage({ params }: { params: Promise<{ porta
 
   return (
     <section className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl font-semibold">Participant registry</h1>
+      <PageBand title="Participant registry">
         <p className="mt-2 max-w-2xl text-muted">
           {copy.registry}
         </p>
-      </div>
+      </PageBand>
       <RegistryTable rows={rows} />
     </section>
   );

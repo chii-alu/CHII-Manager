@@ -8,6 +8,7 @@ import { SessionTabs } from "@/components/manage/SessionTabs";
 import { currentStaffRole } from "@/lib/auth/roles";
 import { visibleTabs } from "@/lib/sessions/tabs";
 import { inPortal } from "@/lib/auth/portals";
+import { PageBand } from "@/components/ui/page-band";
 
 export default async function SessionLayout({
   children,
@@ -76,8 +77,9 @@ export default async function SessionLayout({
         <TypeChip type={selective ? "selective" : "open"} />
         <StatusChip status={status} />
       </div>
-      <h1 className="mt-2 font-display text-3xl font-semibold">{s.title}</h1>
-      <p className="mt-1 text-muted">{meta.join(" · ")}</p>
+      <PageBand title={s.title}>
+        <p className="text-muted">{meta.join(" · ")}</p>
+      </PageBand>
 
       <div className="mt-5 grid overflow-hidden rounded-[10px] border border-line bg-surface sm:grid-cols-2 xl:grid-cols-4">
         {stages.map(([label, value, note]) => (

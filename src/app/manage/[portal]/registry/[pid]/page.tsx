@@ -9,6 +9,7 @@ import { sessionStatus } from "@/lib/rules/session-status";
 import { card } from "@/components/ui/styles";
 import { isPortal, pillarsForPortal } from "@/lib/auth/portals";
 import { AnonymiseButton } from "@/components/manage/AnonymiseButton";
+import { PageBand } from "@/components/ui/page-band";
 
 type Journey = {
   status: EntryStatus;
@@ -60,10 +61,11 @@ export default async function ParticipantPage({ params }: { params: Promise<{ po
     <section className="flex flex-col gap-6">
       <div>
         <Link href={`/manage/${portal}/registry`} className="text-sm text-accent hover:underline">← Participant registry</Link>
-        <h1 className="mt-2 font-display text-3xl font-semibold">{p.name}</h1>
-        <p className="font-mono text-sm text-muted">
-          {p.pid} · {p.email}
-        </p>
+        <PageBand title={p.name}>
+          <p className="font-mono text-sm">
+            {p.pid} · {p.email}
+          </p>
+        </PageBand>
         {staff?.role === "admin" && (
           <div className="mt-3">
             <AnonymiseButton pid={p.pid} name={p.name} />

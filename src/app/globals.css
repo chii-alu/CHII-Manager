@@ -33,15 +33,15 @@
   --bad: #dc2626;
   --bad-soft: #fef2f2;
   --bad-ink: #a81b2d;
-  --hent: #0d6b72;
-  --hent-soft: #d5f5f6;
-  --hent-ink: #0d6b72;
-  --hemp: #7c3aed;
-  --hemp-soft: #ede9fe;
-  --hemp-ink: #6d28d9;
-  --heco: #042c53;
-  --heco-soft: #e8eef5;
-  --heco-ink: #042c53;
+  --hent: #2a5fb0;
+  --hent-soft: #e3ecf8;
+  --hent-ink: #1f4a94;
+  --hemp: #4f93e0;
+  --hemp-soft: #e6f0fc;
+  --hemp-ink: #2d6db8;
+  --heco: #0b2145;
+  --heco-soft: #e4e9f2;
+  --heco-ink: #0b2145;
   color-scheme: light;
 }
 
@@ -104,4 +104,31 @@ body {
 .chii-partner-logo:hover {
   filter: grayscale(0);
   opacity: 1;
+}
+
+/* Manager sidebar: collapsed to icons, opens on hover or keyboard focus, and closes when the pointer leaves. Desktop only. */
+@media (min-width: 768px) {
+  .sidebar {
+    width: 4.5rem;
+    transition: width 180ms ease;
+  }
+  .sidebar:hover,
+  .sidebar:focus-within {
+    width: 16.5rem;
+  }
+  .sidebar .sidebar-label {
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 120ms ease;
+  }
+  .sidebar:hover .sidebar-label,
+  .sidebar:focus-within .sidebar-label {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar .sidebar-label {
+    transition: none;
+  }
 }

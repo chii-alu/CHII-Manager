@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isPortal, pillarsForPortal } from "@/lib/auth/portals";
 import { ImportForm } from "@/components/manage/ImportForm";
+import { PageBand } from "@/components/ui/page-band";
 
 // Sheet importer: upload a sheet, check the column mapping, and see the dry run before anything is written.
 export default async function ImportPage({ params }: { params: Promise<{ portal: string }> }) {
@@ -16,12 +17,11 @@ export default async function ImportPage({ params }: { params: Promise<{ portal:
 
   return (
     <section className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl font-semibold">Import a sheet</h1>
+      <PageBand title="Import a sheet">
         <p className="mt-2 max-w-2xl text-muted">
           Upload a CSV or XLSX file of registrations or feedback. The dry run checks every row and shows what would be imported. Nothing is saved until you confirm.
         </p>
-      </div>
+      </PageBand>
       <ImportForm portal={portal} interventions={interventions} cohorts={cohorts} />
     </section>
   );

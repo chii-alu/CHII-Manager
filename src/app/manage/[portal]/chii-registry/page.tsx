@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isPortal, pillarsForPortal } from "@/lib/auth/portals";
 import { formatDate } from "@/lib/dates";
 import { card, input, btnSm } from "@/components/ui/styles";
+import { PageBand } from "@/components/ui/page-band";
 
 const TABS = [
   { slug: "participants", label: "Participants", view: "v_participant_registry", columns: "chii_id, full_name, email, cohort, intervention, pillar, participation_status, registered_on, sessions_attended, sessions_total" },
@@ -54,12 +55,11 @@ export default async function ChiiRegistryPage({
 
   return (
     <section className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl font-semibold">CHII database</h1>
+      <PageBand title="CHII database">
         <p className="mt-2 max-w-2xl text-muted">
           Participants, attendance and feedback recorded on the CHII tables. {portal === "admin" ? "All pillars." : "Your pillar only."}
         </p>
-      </div>
+      </PageBand>
 
       <nav className="flex gap-1 border-b border-line">
         {TABS.map((t) => (

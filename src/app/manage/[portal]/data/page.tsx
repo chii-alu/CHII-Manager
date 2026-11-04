@@ -3,6 +3,7 @@ import { card, btnSm } from "@/components/ui/styles";
 import { EXPORT_TABLES, type ExportTable } from "@/lib/export/tables";
 import { isPortal } from "@/lib/auth/portals";
 import { PORTAL_COPY } from "@/lib/portal-copy";
+import { PageBand } from "@/components/ui/page-band";
 
 const TABLE_INFO: Record<ExportTable, { description: string; links: string }> = {
   participants: { description: "One row per person.", links: "pid" },
@@ -52,12 +53,11 @@ export default async function DataPage({ params }: { params: Promise<{ portal: s
 
   return (
     <section className="flex flex-col gap-8">
-      <div>
-        <h1 className="font-display text-3xl font-semibold">Data for the dashboard</h1>
+      <PageBand title="Data for the dashboard">
         <p className="mt-2 max-w-2xl text-muted">
           {copy.data}
         </p>
-      </div>
+      </PageBand>
 
       <div className="overflow-x-auto rounded-[10px] border border-line bg-surface">
         <table className="w-full border-collapse text-sm">
