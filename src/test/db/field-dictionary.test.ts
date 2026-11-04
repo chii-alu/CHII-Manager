@@ -214,3 +214,34 @@ describe("exposure events feedback", () => {
   });
 });
 
+describe("internship cohorts", () => {
+  it("has the three cohorts with their host placements from the calendar", async () => {
+    const r = await db.query<{ label: string; n: number }>(
+      `select c.label, count(p.id)::int n from cohort c join interventions i on i.id = c.intervention_id
+       left join cohort_placement p on p.cohort_id = c.id
+       where i.name = 'Internships' and i.pillar = 'HEMP' group by c.label order by c.label`,
+    );
+    expect(r.rows).toEqual([
+      { label: "Cohort 1", n: 9 },
+      { label: "Cohort 2", n: 3 },
+      { label: "Cohort 3", n: 11 },
+    ]);
+  });
+
+  it("a host appears once per cohort", async () => {
+    await expect(
+      db.query(
+        `insert into cohort_placement (cohort_id, organisation_id)
+         select c.id, o.id from cohort c, organisation o where c.label = 'Cohort 2' and o.name = 'RCR'`,
+      ),
+    ).rejects.toThrow(/unique/);
+  });
+});
+
+describe("placement entry times", () => {
+  it("each placement records when it was entered", async () => {
+    const r = await db.query<{ missing: number }>("select count(*)::int missing from cohort_placement where created_at is null or updated_at is null");
+    expect(r.rows[0].missing).toBe(0);
+  });
+});
+
