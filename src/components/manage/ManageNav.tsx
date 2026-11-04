@@ -101,6 +101,7 @@ export function ManageNav({
         Feedback registry
       </NavLink>
       <NavLink href={`/manage/${portal}/chii-registry`}>CHII registry</NavLink>
+      <NavLink href={`/manage/${portal}/import`}>Import a sheet</NavLink>
       {portal === "admin" && (
         <NavLink href={`/manage/${portal}/chii-registrations`}>CHII registrations</NavLink>
       )}
