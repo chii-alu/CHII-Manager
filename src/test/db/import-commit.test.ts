@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { PGlite } from "@electric-sql/pglite";
 import { beforeAll, describe, expect, it } from "vitest";
-import { ADMIN, HENT_STAFF, asUser, setupDb } from "./harness";
+import { ADMIN, asUser, setupDb } from "./harness";
 
 let db: PGlite;
 const HECO_STAFF = "00000000-0000-0000-0000-00000000000f";
