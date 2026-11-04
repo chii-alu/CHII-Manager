@@ -58,12 +58,13 @@ export default async function FeedbackRegistryPage({
 
   return (
     <section className="flex flex-col gap-6">
-      <PageBand title="CHII Feedbacks">
-        <p className="mt-2 max-w-2xl text-muted">{copy.feedback}</p>
-        <div className="mt-3 inline-flex items-baseline gap-2 self-start rounded-xl bg-white/10 px-4 py-2.5 ring-1 ring-white/15">
+      <PageBand title="CHII Feedbacks" aside={
+        <div className="inline-flex items-baseline gap-2">
           <span className="font-display text-2xl font-semibold tabular-nums text-white">{rows.length}</span>
           <span className="text-sm text-[#D8E4F3]">total feedbacks</span>
         </div>
+      }>
+        <p className="mt-2 max-w-2xl text-muted">{copy.feedback}</p>
       </PageBand>
 
       <FilterBar pillars={pillarOptions} interventions={interventionOptions} values={filters} />
@@ -92,7 +93,7 @@ export default async function FeedbackRegistryPage({
                 <tr key={`${r.session_id}-${i}`} className="border-t border-line align-top hover:bg-sunk">
                   <td className="px-3 py-2">
                     {r.participants?.pid ? (
-                      <Link href={`/manage/${portal}/registry/${r.participants.pid}`} className="font-mono text-xs text-accent hover:underline">
+                      <Link href={`/manage/${portal}/registry/${r.participants.pid}?from=feedback`} className="font-mono text-xs text-accent hover:underline">
                         {r.participants.pid}
                       </Link>
                     ) : (

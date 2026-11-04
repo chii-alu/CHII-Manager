@@ -76,14 +76,15 @@ export default async function RegistryPage({
 
   return (
     <section className="flex flex-col gap-6">
-      <PageBand title="CHII Participants">
-        <p className="mt-2 max-w-2xl text-muted">
-          {copy.registry}
-        </p>
-        <div className="mt-3 inline-flex items-baseline gap-2 self-start rounded-xl bg-white/10 px-4 py-2.5 ring-1 ring-white/15">
+      <PageBand title="CHII Participants" aside={
+        <div className="inline-flex items-baseline gap-2">
           <span className="font-display text-2xl font-semibold tabular-nums text-white">{rows.length}</span>
           <span className="text-sm text-[#D8E4F3]">total participants</span>
         </div>
+      }>
+        <p className="mt-2 max-w-2xl text-muted">
+          {copy.registry}
+        </p>
       </PageBand>
       <FilterBar pillars={pillarOptions} interventions={interventionOptions} values={filters} />
       <RegistryTable rows={rows} />

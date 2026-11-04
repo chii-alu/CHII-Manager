@@ -40,7 +40,7 @@ function NavLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4F93E0] ${
+      className={`sidebar-link relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4F93E0] ${
         active
           ? "bg-white/15 font-semibold text-white before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-full before:bg-[#8FB0F5]"
           : "text-[#D8E4F3] hover:bg-white/10 hover:text-white"
@@ -49,7 +49,7 @@ function NavLink({
       {Icon && (
         <span
           aria-hidden
-          className={`flex h-7 w-7 flex-none items-center justify-center rounded-md ${
+          className={`sidebar-item-icon flex h-7 w-7 flex-none items-center justify-center rounded-md ${
             active ? "bg-[#8FB0F5]/35 text-white" : "bg-white/10 text-[#BFD4F5]"
           }`}
         >
@@ -133,7 +133,7 @@ export function ManageNav({
       aria-label="Pillars and interventions"
       className="flex h-full flex-col gap-0.5"
     >
-      <div className="mb-2 rounded-xl bg-white/10 p-4 text-white ring-1 ring-white/15">
+      <div className="sidebar-brand mb-2 rounded-xl bg-white/10 p-4 text-white ring-1 ring-white/15">
         <div className="sidebar-label font-display text-xl font-semibold">{heading}</div>
         {subtitle && <div className="sidebar-label mt-0.5 text-xs text-[#BFD4F5]">{subtitle}</div>}
       </div>
@@ -228,14 +228,14 @@ export function ManageNav({
               <a
                 href={`/api/workbooks/${pillar}?type=participants`}
                 download
-                className="rounded-md px-2.5 py-1.5 pl-6 text-sm text-[#D8E4F3] hover:bg-white/10 hover:text-white"
+                className="sidebar-link rounded-md px-2.5 py-1.5 pl-6 text-sm text-[#D8E4F3] hover:bg-white/10 hover:text-white"
               >
                 <span className="sidebar-label">{pillar} Participant Consolidated Database</span>
               </a>
               <a
                 href={`/api/workbooks/${pillar}?type=feedback`}
                 download
-                className="rounded-md px-2.5 py-1.5 pl-6 text-sm text-[#D8E4F3] hover:bg-white/10 hover:text-white"
+                className="sidebar-link rounded-md px-2.5 py-1.5 pl-6 text-sm text-[#D8E4F3] hover:bg-white/10 hover:text-white"
               >
                 <span className="sidebar-label">{pillar} Feedback Consolidated Database</span>
               </a>
@@ -253,11 +253,11 @@ export function ManageNav({
       <div className="mt-auto border-t border-white/15 pt-4 text-sm">
         <Link
           href="/dashboard"
-          className="block rounded-md px-2.5 py-1.5 font-semibold text-white hover:bg-white/10"
+          className="sidebar-link block rounded-md px-2.5 py-1.5 font-semibold text-white hover:bg-white/10"
         >
           <span className="sidebar-label">Dashboard</span>
         </Link>
-        <form action={signOutAction}>
+        <form action={signOutAction} className="sidebar-link">
           <button type="submit" className="rounded-md px-2.5 py-1.5 text-[#D8E4F3] hover:bg-white/10 hover:text-white">
             <span className="sidebar-label">Sign out</span>
           </button>

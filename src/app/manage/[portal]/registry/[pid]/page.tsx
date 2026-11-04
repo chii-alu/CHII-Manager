@@ -26,8 +26,17 @@ type Journey = {
   };
 };
 
-export default async function ParticipantPage({ params }: { params: Promise<{ portal: string; pid: string }> }) {
+export default async function ParticipantPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ portal: string; pid: string }>;
+  searchParams: Promise<{ from?: string }>;
+}) {
   const { portal, pid } = await params;
+  // Where the person was opened from, so the back button returns there.
+  const { from } = await searchParams;
+  const fromFeedback = from === "feedback";
   const supabase = await createClient();
 
   const { data: p } = await supabase
@@ -67,11 +76,11 @@ export default async function ParticipantPage({ params }: { params: Promise<{ po
     <section className="flex flex-col gap-6">
       <div>
         <Link
-          href={`/manage/${portal}/registry`}
+          href={fromFeedback ? `/manage/${portal}/feedback-registry` : `/manage/${portal}/registry`}
           className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#C9D3E3] bg-white px-3.5 py-1.5 text-sm font-semibold text-[#14306B] shadow-[0_1px_2px_rgba(16,44,94,0.06)] transition-colors hover:border-[#14306B] hover:bg-[#EEF3FB] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4F93E0] motion-reduce:transition-none"
         >
           <ArrowLeft size={16} aria-hidden />
-          Back to CHII Participants
+          {fromFeedback ? "Back to CHII Feedbacks" : "Back to CHII Participants"}
         </Link>
         <PageBand title={String(chii?.names ?? p.name)}>
           <p className="font-mono text-sm">{p.pid}</p>

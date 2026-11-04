@@ -116,19 +116,33 @@ body {
   .sidebar:focus-within {
     width: 16.5rem;
   }
-  .sidebar .sidebar-label {
-    opacity: 0;
+  /* Collapsed: only the section headings' icons show. Link labels and link icons are hidden. */
+  .sidebar .sidebar-label,
+  .sidebar .sidebar-item-icon,
+  .sidebar .sidebar-link,
+  .sidebar .sidebar-brand {
+    display: none;
     white-space: nowrap;
-    transition: opacity 120ms ease;
   }
   .sidebar:hover .sidebar-label,
   .sidebar:focus-within .sidebar-label {
-    opacity: 1;
+    display: revert;
+  }
+  /* Restore each element's own layout: "revert" would fall back to the browser default (inline) and break the flex rows. */
+  .sidebar:hover .sidebar-item-icon,
+  .sidebar:focus-within .sidebar-item-icon,
+  .sidebar:hover .sidebar-link,
+  .sidebar:focus-within .sidebar-link {
+    display: flex;
+  }
+  .sidebar:hover .sidebar-brand,
+  .sidebar:focus-within .sidebar-brand {
+    display: flex;
+    flex-direction: column;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .sidebar,
-  .sidebar .sidebar-label {
+  .sidebar {
     transition: none;
   }
 }
