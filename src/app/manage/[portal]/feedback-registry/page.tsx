@@ -51,11 +51,11 @@ export default async function FeedbackRegistryPage({ params }: { params: Promise
           <table className="w-full border-collapse text-sm">
             <thead className="bg-brand text-left text-xs font-semibold text-on-accent">
               <tr>
+                <th className="px-3 py-2">CHII ID</th>
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">Pillar</th>
                 <th className="px-3 py-2">Intervention</th>
                 <th className="px-3 py-2">Session</th>
-                <th className="px-3 py-2">Participant</th>
                 <th className="px-3 py-2 text-right">Satisfaction</th>
                 <th className="px-3 py-2 text-right">Relevance</th>
                 <th className="px-3 py-2 text-right">NPS</th>
@@ -66,14 +66,6 @@ export default async function FeedbackRegistryPage({ params }: { params: Promise
             <tbody>
               {rows.map((r, i) => (
                 <tr key={`${r.session_id}-${i}`} className="border-t border-line align-top hover:bg-sunk">
-                  <td className="whitespace-nowrap px-3 py-2">{formatDate(r.submitted_at.slice(0, 10))}</td>
-                  <td className="px-3 py-2"><PillarChip pillar={r.sessions.pillar} /></td>
-                  <td className="px-3 py-2">{r.sessions.interventions?.name ?? "—"}</td>
-                  <td className="px-3 py-2">
-                    <Link href={`/manage/${portal}/sessions/${r.session_id}/feedback`} className="font-semibold text-accent hover:underline">
-                      {r.sessions.title}
-                    </Link>
-                  </td>
                   <td className="px-3 py-2">
                     {r.participants?.pid ? (
                       <Link href={`/manage/${portal}/registry/${r.participants.pid}`} className="font-mono text-xs text-accent hover:underline">
@@ -82,6 +74,14 @@ export default async function FeedbackRegistryPage({ params }: { params: Promise
                     ) : (
                       "—"
                     )}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2">{formatDate(r.submitted_at.slice(0, 10))}</td>
+                  <td className="px-3 py-2"><PillarChip pillar={r.sessions.pillar} /></td>
+                  <td className="px-3 py-2">{r.sessions.interventions?.name ?? "—"}</td>
+                  <td className="px-3 py-2">
+                    <Link href={`/manage/${portal}/sessions/${r.session_id}/feedback`} className="font-semibold text-accent hover:underline">
+                      {r.sessions.title}
+                    </Link>
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.satisfaction}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.relevance}</td>

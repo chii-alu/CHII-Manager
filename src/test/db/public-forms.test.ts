@@ -67,7 +67,7 @@ describe("submit_intake (SPEC §4.5–4.9)", () => {
     const { codes } = await openSession("Masterclass");
     const r = await submitIntake(codes.intake, profile("new@example.org"));
     expect(r.rows[0].r).toMatchObject({ status: "registered", returning: false });
-    expect(r.rows[0].r.pid).toMatch(/^MELA-\d{4}$/);
+    expect(r.rows[0].r.pid).toMatch(/^CHII-\d{6}$/);
   });
 
   it("matches a returning email case-insensitively and reuses the PID", async () => {

@@ -15,4 +15,17 @@ begin
 end
 $$;
 
-alter table public.participants alter column pid set default public.mint_chii_id();
+-- Callers (public form, staff) cannot run mint_chii_id directly, so a small wrapper runs with the owner's rights.
+create function public.participant_pid()
+returns text
+language sql
+security definer
+set search_path = ''
+as $$
+  select public.mint_chii_id();
+$$;
+
+revoke execute on function public.participant_pid() from public;
+grant execute on function public.participant_pid() to anon, authenticated;
+
+alter table public.participants alter column pid set default public.participant_pid();

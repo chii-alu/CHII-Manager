@@ -112,11 +112,12 @@ describe("schema and RLS (SPEC §3, §8)", () => {
     expect(r.rows[0].n).toBe(17);
   });
 
-  it("generates participant IDs as MELA-0001, MELA-0002", async () => {
+  it("gives participants CHII IDs", async () => {
     const r = await query<{ pid: string }>(
       "insert into participants (email, name) values ('a@x.org','A'),('b@x.org','B') returning pid",
     );
-    expect(r.rows.map((x) => x.pid)).toEqual(["MELA-0001", "MELA-0002"]);
+    expect(r.rows.map((x) => x.pid)).toEqual(expect.arrayContaining([expect.stringMatching(/^CHII-\d{6}$/)]));
+    expect(r.rows).toHaveLength(2);
   });
 
   it("treats emails as case-insensitive (citext)", async () => {
