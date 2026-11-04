@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { toCsv } from "@/lib/csv";
 import { EXPORTS, EXPORT_TABLES, type ExportTable } from "@/lib/export/tables";
 import { todayIso } from "@/lib/dates";
+import { logExport } from "@/lib/export/log";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tab
     const def = EXPORTS[table as ExportTable];
     const rows = await def.load(supabase);
     const csv = toCsv(def.columns, rows);
+    // Admin only, so every column is included. Recorded in the export log.
+    await logExport(supabase, {
+      exportKind: "table",
+      pillar: null,
+      detail: table,
+      filters: {},
+      rowCount: rows.length,
+      includesRestricted: true,
+      fileName: `mela-${table}-${todayIso()}.csv`,
+    });
     return new NextResponse(csv, {
       headers: {
         "content-type": "text/csv; charset=utf-8",

@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { toCsv } from "@/lib/csv";
 import { todayIso } from "@/lib/dates";
 import { toXlsx } from "@/lib/export/xlsx";
+import { allowedColumns, fileName } from "@/lib/export/restricted";
+import { logExport } from "@/lib/export/log";
 import { PORTALS } from "@/lib/auth/portals";
 
 export const runtime = "nodejs";
@@ -57,25 +59,39 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   // The column called "cohort" in the database is "session title" in the file.
   const heading = (c: string) => (c === "cohort" ? "session title" : c);
+  const canSeeRestricted = staff.role === "admin";
+  const cols = allowedColumns([...registry.columns], registry.columns.map(heading), canSeeRestricted);
   const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) =>
     Object.fromEntries(Object.entries(r).map(([k, v]) => [heading(k), v])),
   );
+
+  const deIdentified = cols.removed;
+  await logExport(supabase, {
+    exportKind: "registry",
+    pillar: portal && portal !== "admin" ? portal.toUpperCase() : null,
+    detail: name,
+    filters: { portal, intervention, cohort },
+    rowCount: rows.length,
+    includesRestricted: canSeeRestricted,
+    fileName: fileName(`mela-${name}-registry-${todayIso()}`, "csv", deIdentified),
+  });
+
   if (search.get("format") === "xlsx") {
-    const xlsx = await toXlsx(name, registry.columns.map(heading), rows);
+    const xlsx = await toXlsx(name, cols.headers, rows);
     return new NextResponse(new Uint8Array(xlsx), {
       headers: {
         "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "content-disposition": `attachment; filename="mela-${name}-registry-${todayIso()}.xlsx"`,
+        "content-disposition": `attachment; filename="${fileName(`mela-${name}-registry-${todayIso()}`, "xlsx", deIdentified)}"`,
         "cache-control": "no-store",
       },
     });
   }
 
-  const csv = toCsv(registry.columns.map(heading), rows);
+  const csv = toCsv(cols.headers, rows);
   return new NextResponse(csv, {
     headers: {
       "content-type": "text/csv; charset=utf-8",
-      "content-disposition": `attachment; filename="mela-${name}-registry-${todayIso()}.csv"`,
+      "content-disposition": `attachment; filename="${fileName(`mela-${name}-registry-${todayIso()}`, "csv", deIdentified)}"`,
       "cache-control": "no-store",
     },
   });

@@ -4,6 +4,8 @@ import { todayIso } from "@/lib/dates";
 import { toWorkbook, type SheetSpec } from "@/lib/export/xlsx";
 import { FEEDBACK_COLUMNS, PARTICIPANT_COLUMNS } from "@/lib/workbooks/columns";
 import { answerText, buildExtras, type ExtraAnswer, type Extras } from "@/lib/workbooks/extras";
+import { allowedColumns, fileName, RESTRICTED_COLUMNS } from "@/lib/export/restricted";
+import { logExport } from "@/lib/export/log";
 
 export const runtime = "nodejs";
 
@@ -35,8 +37,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const view = isParticipants ? "v_workbook_participants" : "v_workbook_feedback";
   const keys: [string | null, string][] = isParticipants ? PARTICIPANT_COLUMNS : FEEDBACK_COLUMNS;
   // Spec columns with no matching question get their own empty column, keyed by position.
-  const columns = keys.map(([k], i) => k ?? `blank_${i}`);
-  const headers = keys.map(([, h]) => h);
+  const canSeeRestricted = staff.role === "admin";
+  const base = allowedColumns(
+    keys.map(([k], i) => k ?? `blank_${i}`),
+    keys.map(([, h]) => h),
+    canSeeRestricted,
+  );
+  const columns = base.keys;
+  const headers = base.headers;
+  let removedAny = base.removed;
 
   const { data, error } = await supabase.from(view).select("*").eq("pillar", pillar).limit(50000);
   if (error) {
@@ -78,7 +87,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const extrasFor = (subset: Record<string, unknown>[]) => extras.keys.filter((k) => subset.some((r) => extras.byResponse.get(keyOf(r))?.[k] !== undefined));
 
   const spec = (name: string, subset: Record<string, unknown>[], withIntervention: boolean): SheetSpec => {
-    const extraKeys = extrasFor(subset);
+    const extraKeys = extrasFor(subset).filter((k) => {
+      const allowed = canSeeRestricted || !RESTRICTED_COLUMNS.has(k.replace(/^extra_/, ""));
+      if (!allowed) removedAny = true;
+      return allowed;
+    });
     return {
       name,
       columns: [...(withIntervention ? ["intervention"] : []), ...columns, ...extraKeys],
@@ -108,10 +121,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     readme,
   ]);
 
+  const name = `${pillar} Consolidated ${isParticipants ? "Participants" : "Feedback"}`;
+  await logExport(supabase, {
+    exportKind: "workbook",
+    pillar,
+    detail: type,
+    filters: {},
+    rowCount: rows.length,
+    includesRestricted: canSeeRestricted,
+    fileName: fileName(name, "xlsx", removedAny),
+  });
+
   return new NextResponse(new Uint8Array(xlsx), {
     headers: {
       "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "content-disposition": `attachment; filename="${pillar} Consolidated ${isParticipants ? "Participants" : "Feedback"}.xlsx"`,
+      "content-disposition": `attachment; filename="${fileName(name, "xlsx", removedAny)}"`,
       "cache-control": "no-store",
     },
   });
