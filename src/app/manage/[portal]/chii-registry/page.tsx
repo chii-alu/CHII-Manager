@@ -55,7 +55,7 @@ export default async function ChiiRegistryPage({
   return (
     <section className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-3xl font-semibold">CHII registry</h1>
+        <h1 className="font-display text-3xl font-semibold">CHII database</h1>
         <p className="mt-2 max-w-2xl text-muted">
           Participants, attendance and feedback recorded on the CHII tables. {portal === "admin" ? "All pillars." : "Your pillar only."}
         </p>

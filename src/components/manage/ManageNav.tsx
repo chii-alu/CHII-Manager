@@ -37,12 +37,12 @@ function NavLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm ${
-        active ? "bg-accent font-semibold text-on-accent" : "text-muted hover:bg-sunk"
+        active ? "font-semibold text-accent" : "text-muted hover:bg-sunk"
       }`}
     >
       {children}
       {count !== undefined && (
-        <span className={`ml-auto text-xs tabular-nums ${active ? "text-on-accent" : "text-muted"}`}>
+        <span className={`ml-auto text-xs tabular-nums ${active ? "text-accent" : "text-muted"}`}>
           {count || ""}
         </span>
       )}
@@ -91,21 +91,20 @@ export function ManageNav({
   isAdmin: boolean;
   showStaffAccess: boolean;
 }) {
-  const records = (
+  const overview = <NavLink href={`/manage/${portal}`}>Overview</NavLink>;
+  const dataCollection = (
     <>
-      <NavLink href={`/manage/${portal}`}>Overview</NavLink>
       <NavLink href={`/manage/${portal}/registry`}>
         Participant registry
       </NavLink>
       <NavLink href={`/manage/${portal}/feedback-registry`}>
         Feedback registry
       </NavLink>
-      <NavLink href={`/manage/${portal}/chii-registry`}>CHII registry</NavLink>
+      <NavLink href={`/manage/${portal}/chii-registry`}>CHII database</NavLink>
       <NavLink href={`/manage/${portal}/import`}>Import a sheet</NavLink>
       {portal === "admin" && (
         <NavLink href={`/manage/${portal}/chii-registrations`}>CHII registrations</NavLink>
       )}
-      <NavLink href={`/manage/${portal}/data`}>Data for the dashboard</NavLink>
     </>
   );
 
@@ -120,11 +119,19 @@ export function ManageNav({
       </div>
 
       {portal === "admin" ? (
-        <Section title="OVERVIEW AND RECORDS">{records}</Section>
+        <>
+          <Section title="OVERVIEW">{overview}</Section>
+          <Section title="DATA COLLECTION">{dataCollection}</Section>
+        </>
       ) : (
-        records
+        <>
+          {overview}
+          {dataCollection}
+        </>
       )}
 
+      {/* The pillar sections are shown in the pillar views only, not the MELA view. */}
+      {portal !== "admin" && (
       <Section title="PILLAR TRACKER">
         {pillars.map(({ pillar, interventions }) => {
           const body = (
@@ -182,6 +189,38 @@ export function ManageNav({
             </details>
           );
         })}
+      </Section>
+      )}
+
+      <Section title="DATABASE">
+        <NavLink href={`/manage/${portal}/data`}>Data for the dashboard</NavLink>
+        {pillars.map(({ pillar }) => (
+          <details key={pillar} className="group ml-1">
+            <summary className="flex cursor-pointer list-none items-center gap-2 px-2.5 py-1.5 text-sm font-semibold text-ink hover:text-accent [&::-webkit-details-marker]:hidden">
+              <span className="h-3 w-1 rounded-sm" style={{ background: PILLAR_COLOR[pillar] }} />
+              {pillar}
+              <span aria-hidden className="ml-auto text-xs transition-transform group-open:rotate-90">
+                ›
+              </span>
+            </summary>
+            <div className="flex flex-col">
+              <a
+                href={`/api/workbooks/${pillar}?type=participants`}
+                download
+                className="px-2.5 py-1.5 pl-6 text-sm text-muted hover:bg-sunk hover:text-ink"
+              >
+                {pillar} Participant Consolidated Database
+              </a>
+              <a
+                href={`/api/workbooks/${pillar}?type=feedback`}
+                download
+                className="px-2.5 py-1.5 pl-6 text-sm text-muted hover:bg-sunk hover:text-ink"
+              >
+                {pillar} Feedback Consolidated Database
+              </a>
+            </div>
+          </details>
+        ))}
       </Section>
 
       {showStaffAccess && (
