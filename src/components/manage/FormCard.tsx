@@ -29,6 +29,7 @@ export function FormCard({
   customQuestions,
   core,
   previewFields,
+  locked = false,
 }: {
   sessionId: string;
   sessionTitle: string;
@@ -42,6 +43,8 @@ export function FormCard({
   customQuestions?: Question[];
   core?: CoreQuestion[];
   previewFields: FieldSpec[];
+  // A form built from a fixed template: it can be previewed and shared, but its questions cannot be edited here.
+  locked?: boolean;
 }) {
   const router = useRouter();
   const [current, setCurrent] = useState<FormStatus>(status);
@@ -49,7 +52,7 @@ export function FormCard({
   const [editOpen, setEditOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const editable = kind !== "attendance";
+  const editable = kind !== "attendance" && !locked;
 
   const changeStatus = async (next: FormStatus) => {
     setError(null);

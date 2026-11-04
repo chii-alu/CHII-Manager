@@ -7,8 +7,8 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const playfair = Playfair_Display({ variable: "--font-playfair", subsets: ["latin"], weight: ["400", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "MELA",
-  description: "MELA monitoring, evaluation, learning and adaptation: intervention tracker and dashboard",
+  title: "Intervention Manager",
+  description: "MELA monitoring, evaluation, learning and adaptation: Intervention Manager and dashboard",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

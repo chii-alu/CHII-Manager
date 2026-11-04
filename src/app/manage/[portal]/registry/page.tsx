@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { RegistryTable, type RegistryRow } from "@/components/manage/RegistryTable";
-import { isPortal } from "@/lib/auth/portals";
+import { isPortal, pillarsForPortal } from "@/lib/auth/portals";
 import { PORTAL_COPY } from "@/lib/portal-copy";
 
 export default async function RegistryPage({ params }: { params: Promise<{ portal: string }> }) {
@@ -15,6 +15,8 @@ export default async function RegistryPage({ params }: { params: Promise<{ porta
   ]);
   if (error) throw new Error(`Could not load participants: ${error.message}`);
 
+  // Pillar views list only the people registered for that pillar. Admins see everyone.
+  const visible = isPortal(portal) ? pillarsForPortal(portal) : [];
   const rows: RegistryRow[] = (people ?? []).map((p) => {
     const mine = (entries ?? []).filter((e) => e.participant_id === p.id);
     const pillars = [...new Set(mine.map((e) => (e.sessions as unknown as { pillar: string } | null)?.pillar).filter(Boolean))] as string[];
@@ -31,7 +33,7 @@ export default async function RegistryPage({ params }: { params: Promise<{ porta
       sessions,
       attended,
     };
-  });
+  }).filter((r) => portal === "admin" || r.pillars.some((pillar) => visible.includes(pillar as (typeof visible)[number])));
 
   return (
     <section className="flex flex-col gap-6">

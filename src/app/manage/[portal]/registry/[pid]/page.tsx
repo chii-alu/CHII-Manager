@@ -7,6 +7,7 @@ import { STATUS_LABEL, type EntryStatus } from "@/lib/sessions/status";
 import { isCompleted } from "@/lib/rules/completion";
 import { sessionStatus } from "@/lib/rules/session-status";
 import { card } from "@/components/ui/styles";
+import { isPortal, pillarsForPortal } from "@/lib/auth/portals";
 import { AnonymiseButton } from "@/components/manage/AnonymiseButton";
 
 type Journey = {
@@ -47,9 +48,12 @@ export default async function ParticipantPage({ params }: { params: Promise<{ po
     supabase.from("feedback").select("session_id").eq("participant_id", p.id),
   ]);
 
+  // Pillar views show only the sessions of that pillar, and a person with none there is not found.
+  const visible = isPortal(portal) && portal !== "admin" ? new Set<string>(pillarsForPortal(portal)) : null;
   const journey = ((entries ?? []) as unknown as Journey[])
-    .filter((j) => j.sessions)
+    .filter((j) => j.sessions && (!visible || visible.has(j.sessions.pillar)))
     .sort((a, b) => (a.sessions.dates[0] ?? "").localeCompare(b.sessions.dates[0] ?? ""));
+  if (visible && journey.length === 0) notFound();
   const today = todayIso();
 
   return (

@@ -100,6 +100,9 @@ export function ManageNav({
       <NavLink href={`/manage/${portal}/feedback-registry`}>
         Feedback registry
       </NavLink>
+      {portal === "admin" && (
+        <NavLink href={`/manage/${portal}/chii-registrations`}>CHII registrations</NavLink>
+      )}
       <NavLink href={`/manage/${portal}/data`}>Data for the dashboard</NavLink>
     </>
   );

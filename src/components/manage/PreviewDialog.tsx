@@ -4,7 +4,7 @@ import { useState } from "react";
 import { DynamicForm, type FieldValues } from "@/components/forms/DynamicForm";
 import { Dialog } from "@/components/ui/Dialog";
 import { btn, btnPri } from "@/components/ui/styles";
-import { buildValuesSchema, type FieldSpec } from "@/lib/forms/fields";
+import { validateAnswers, type FieldSpec } from "@/lib/forms/fields";
 
 // SPEC §4.5 and §7: staff can try a form before sharing it. The preview validates exactly like the
 // public form, but it never calls the database, so nothing is saved and the form status does not matter.
@@ -35,7 +35,7 @@ function PreviewBody({ fields, onClose }: { fields: FieldSpec[]; onClose: () => 
 
   const check = (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = buildValuesSchema(fields).safeParse(values);
+    const parsed = validateAnswers(fields, values);
     if (parsed.success) {
       setErrors({});
       setResult("ok");

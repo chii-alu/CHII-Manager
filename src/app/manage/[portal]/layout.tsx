@@ -61,7 +61,7 @@ export default async function ManageLayout({
           portal={requested}
           pillars={pillars}
           heading={heading}
-          subtitle={requested === "admin" ? "Intervention tracker" : undefined}
+          subtitle={requested === "admin" ? "Intervention Manager" : undefined}
           signOutAction={signOut}
           isAdmin={isAdmin}
           showStaffAccess={isAdmin && requested === "admin"}

@@ -5,7 +5,8 @@ import { RubricCard } from "@/components/manage/RubricEditor";
 import { ReviewersCard, type Person } from "@/components/manage/ReviewersCard";
 import { INTAKE_CORE, FEEDBACK_CORE } from "@/lib/forms/core-questions";
 import { questionsSchema, type Question } from "@/lib/forms/questions";
-import { publicFields } from "@/lib/forms/fields";
+import { publicFields, type FieldSpec } from "@/lib/forms/fields";
+import { MASTERCLASS_TEMPLATE_ID } from "@/lib/forms/registration";
 import { requireTab } from "@/lib/sessions/guard";
 
 export default async function SessionFormsPage({ params }: { params: Promise<{ portal: string; id: string }> }) {
@@ -24,7 +25,7 @@ export default async function SessionFormsPage({ params }: { params: Promise<{ p
   const canManageReviewers = me?.role !== undefined && me.role !== "reviewer";
 
   const [{ data: forms }, { data: rubric }, entries, attendance, feedback, { data: reviewerRows }, { data: staffRows }] = await Promise.all([
-    supabase.from("forms").select("kind, code, status, questions").eq("session_id", id),
+    supabase.from("forms").select("kind, code, status, questions, template").eq("session_id", id),
     supabase.from("rubric_criteria").select("name, weight, position").eq("session_id", id).order("position"),
     supabase.from("entries").select("id", { count: "exact", head: true }).eq("session_id", id),
     supabase.from("attendance").select("session_id", { count: "exact", head: true }).eq("session_id", id),
@@ -52,7 +53,9 @@ export default async function SessionFormsPage({ params }: { params: Promise<{ p
   const assignedPeople = staff.filter((p) => assignedIds.has(p.userId));
   const candidatePeople = staff.filter((p) => !assignedIds.has(p.userId));
 
+  const isTemplate = intake.template === MASTERCLASS_TEMPLATE_ID;
   const intakeQs = customQuestions(intake.questions);
+  const templateFields = (intake.questions ?? []) as FieldSpec[];
   const feedbackQs = customQuestions(feed.questions);
   const dates = [...s.dates].sort();
 
@@ -64,14 +67,19 @@ export default async function SessionFormsPage({ params }: { params: Promise<{ p
           sessionTitle={s.title}
           kind="intake"
           title={selective ? "Application form" : "Registration form"}
-          description={`${INTAKE_CORE.length} standard fields + ${intakeQs.length} question${intakeQs.length === 1 ? "" : "s"} for this session.`}
+          description={
+            isTemplate
+              ? "Masterclass registration template. Students are asked only what applies to them (ALU, ALX or Other)."
+              : `${INTAKE_CORE.length} standard fields + ${intakeQs.length} question${intakeQs.length === 1 ? "" : "s"} for this session.`
+          }
           code={intake.code}
           status={intake.status as FormStatus}
           count={entries.count ?? 0}
           countLabel={selective ? "applications received" : "registrations received"}
           customQuestions={intakeQs}
-          core={INTAKE_CORE}
-          previewFields={publicFields("intake", intakeQs, dates)}
+          core={isTemplate ? [] : INTAKE_CORE}
+          previewFields={isTemplate ? templateFields : publicFields("intake", intakeQs, dates)}
+          locked={isTemplate}
         />
         <FormCard
           sessionId={id}
