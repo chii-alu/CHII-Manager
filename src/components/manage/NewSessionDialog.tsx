@@ -14,7 +14,6 @@ export function NewSessionDialog({
   standardLabel = "Standard template",
   interventionId,
   interventionName,
-  pillar,
   selective,
   copyOptions,
 }: {

@@ -38,11 +38,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (!staff) return NextResponse.json({ error: "Only MELA staff can export registries" }, { status: 403 });
 
   // Optional filter: ?pillar=HENT (or any of the portal names). The database still applies access rules.
-  const portal = request.nextUrl.searchParams.get("portal");
+  const search = request.nextUrl.searchParams;
+  const portal = search.get("portal");
   let query = supabase.from(registry.view).select(registry.columns.join(", "));
   if (portal && (PORTALS as readonly string[]).includes(portal) && portal !== "admin") {
     query = query.eq("pillar", portal.toUpperCase());
   }
+  const intervention = search.get("intervention");
+  const cohort = search.get("cohort");
+  if (intervention) query = query.eq("intervention", intervention);
+  if (cohort) query = query.eq("cohort", cohort);
   const { data, error } = await query.order("pillar").limit(50000);
   if (error) {
     console.error("registry export failed", name, error);
