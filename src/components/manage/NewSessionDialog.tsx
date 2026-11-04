@@ -11,6 +11,7 @@ import { usePortal } from "./usePortal";
 export type CopyOption = { id: string; label: string };
 
 export function NewSessionDialog({
+  standardLabel = "Standard template",
   interventionId,
   interventionName,
   pillar,
@@ -19,6 +20,7 @@ export function NewSessionDialog({
 }: {
   interventionId: string;
   interventionName: string;
+  standardLabel?: string;
   pillar: string;
   selective: boolean;
   copyOptions: CopyOption[];
@@ -55,7 +57,7 @@ export function NewSessionDialog({
             <label className={label}>
               Start forms from
               <select className={input} value={copyFrom} onChange={(e) => setCopyFrom(e.target.value)}>
-                <option value="">Standard {pillar} template</option>
+                <option value="">{standardLabel}</option>
                 {copyOptions.map((o) => (
                   <option key={o.id} value={o.id}>
                     Copy from: {o.label}

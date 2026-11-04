@@ -28,6 +28,12 @@ export default async function InterventionPage({ params }: { params: Promise<{ p
 
   const { data: iv } = await supabase.from("interventions").select("id, name, pillar, type").eq("id", id).maybeSingle();
   if (!iv || !user || !inPortal(portal, iv.pillar)) notFound();
+  // Interventions with a standard feedback template name it in the "Start forms from" choice.
+  const { count: templateCount } = await supabase
+    .from("feedback_template")
+    .select("intervention_id", { count: "exact", head: true })
+    .eq("intervention_id", iv.id);
+  const standardLabel = (templateCount ?? 0) > 0 ? `Standard ${iv.name} Template` : `Standard ${iv.pillar} template`;
 
   const { data: staff } = await supabase.from("staff_roles").select("role").eq("user_id", user.id).maybeSingle();
   const isAdmin = staff?.role === "admin";
@@ -95,6 +101,7 @@ export default async function InterventionPage({ params }: { params: Promise<{ p
           <NewSessionDialog
             interventionId={iv.id}
             interventionName={iv.name}
+            standardLabel={standardLabel}
             pillar={iv.pillar}
             selective={selective}
             copyOptions={copyOptions}
