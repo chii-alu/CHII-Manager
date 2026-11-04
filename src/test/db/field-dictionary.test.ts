@@ -245,3 +245,28 @@ describe("placement entry times", () => {
   });
 });
 
+describe("template feedback as CHII data", () => {
+  it("saves each intern answer as CHII data, keyed to the person's CHII ID", async () => {
+    const rows = await db.query<{ field_key: string; chii_id: string }>(
+      "select rv.field_key, rv.chii_id from response_value rv where rv.response_type = 'session_feedback'",
+    );
+    expect(rows.rows.map((r) => r.field_key)).toEqual(expect.arrayContaining(["email", "nps"]));
+    expect(new Set(rows.rows.map((r) => r.chii_id)).size).toBe(1);
+  });
+
+  it("the feedback workbook shows the session feedback with its completion status and answers", async () => {
+    const r = await asUser(db, ADMIN, "select intervention, pillar, completion_status, nps from v_workbook_feedback where intervention = 'Internships'");
+    expect(r.rows).toHaveLength(1);
+    expect(r.rows[0].pillar).toBe("HEMP");
+    expect(r.rows[0].completion_status).toBe("Completed");
+    expect(r.rows[0].nps).toBe("9");
+  });
+
+  it("only staff of the session's pillar can read those answers", async () => {
+    const admin = await asUser(db, ADMIN, "select count(*)::int n from response_value where response_type = 'session_feedback'");
+    expect(admin.rows[0].n).toBeGreaterThan(0);
+    const hent = await asUser(db, HENT_STAFF, "select count(*)::int n from response_value where response_type = 'session_feedback'");
+    expect(hent.rows[0].n).toBe(0);
+  });
+});
+
