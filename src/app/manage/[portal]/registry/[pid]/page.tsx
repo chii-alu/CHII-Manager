@@ -10,6 +10,8 @@ import { card } from "@/components/ui/styles";
 import { isPortal, pillarsForPortal } from "@/lib/auth/portals";
 import { AnonymiseButton } from "@/components/manage/AnonymiseButton";
 import { PageBand } from "@/components/ui/page-band";
+import { PARTICIPANT_COLUMNS } from "@/lib/workbooks/columns";
+import { ArrowLeft } from "lucide-react";
 
 type Journey = {
   status: EntryStatus;
@@ -34,6 +36,10 @@ export default async function ParticipantPage({ params }: { params: Promise<{ po
     .eq("pid", pid)
     .maybeSingle();
   if (!p) notFound();
+
+  // The person's CHII record: every demographic column from the participant workbook, across all interventions.
+  const { data: chiiRows } = await supabase.from("v_workbook_participants").select("*").eq("chii_id", pid).limit(1);
+  const chii = (chiiRows?.[0] ?? null) as Record<string, string | number | null> | null;
 
   const {
     data: { user },
@@ -60,11 +66,15 @@ export default async function ParticipantPage({ params }: { params: Promise<{ po
   return (
     <section className="flex flex-col gap-6">
       <div>
-        <Link href={`/manage/${portal}/registry`} className="text-sm text-accent hover:underline">← CHII Participants</Link>
-        <PageBand title={p.name}>
-          <p className="font-mono text-sm">
-            {p.pid} · {p.email}
-          </p>
+        <Link
+          href={`/manage/${portal}/registry`}
+          className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#C9D3E3] bg-white px-3.5 py-1.5 text-sm font-semibold text-[#14306B] shadow-[0_1px_2px_rgba(16,44,94,0.06)] transition-colors hover:border-[#14306B] hover:bg-[#EEF3FB] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4F93E0] motion-reduce:transition-none"
+        >
+          <ArrowLeft size={16} aria-hidden />
+          Back to CHII Participants
+        </Link>
+        <PageBand title={String(chii?.names ?? p.name)}>
+          <p className="font-mono text-sm">{p.pid}</p>
         </PageBand>
         {staff?.role === "admin" && (
           <div className="mt-3">
@@ -73,14 +83,10 @@ export default async function ParticipantPage({ params }: { params: Promise<{ po
         )}
       </div>
 
-      <div className={`${card} grid gap-3 text-sm sm:grid-cols-3`}>
-        <Field k="Phone" v={p.phone} />
-        <Field k="Gender" v={p.gender} />
-        <Field k="Age group" v={p.age_group} />
-        <Field k="Country" v={p.country} />
-        <Field k="Affiliation" v={p.affiliation} />
-        <Field k="Disability" v={p.disability} />
-        <Field k="Consent recorded" v={p.consent_at ? new Date(p.consent_at).toLocaleDateString("en-GB") : null} />
+      <div className={`${card} grid gap-4 text-sm sm:grid-cols-2 xl:grid-cols-3`}>
+        {PARTICIPANT_COLUMNS.map(([key, header]) => (
+          <Field key={key} k={header} v={chii?.[key] === undefined || chii?.[key] === null ? null : String(chii[key])} />
+        ))}
       </div>
 
       <div className="flex flex-col gap-3">

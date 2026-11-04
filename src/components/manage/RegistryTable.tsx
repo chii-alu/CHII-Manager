@@ -58,12 +58,12 @@ export function RegistryTable({ rows }: { rows: RegistryRow[] }) {
             <tbody>
               {visible.map((r) => (
                 <tr key={r.pid} className="border-t border-line hover:bg-sunk">
-                  <td className="px-3 py-2 font-mono text-xs">{r.pid}</td>
-                  <td className="px-3 py-2">
+                  <td className="px-3 py-2 font-mono text-xs">
                     <Link href={`/manage/${portal}/registry/${r.pid}`} className="font-semibold text-accent hover:underline">
-                      {r.name}
+                      {r.pid}
                     </Link>
                   </td>
+                  <td className="px-3 py-2">{r.name}</td>
                   <td className="px-3 py-2">{r.email}</td>
                   <td className="px-3 py-2">{r.gender ?? "—"}</td>
                   <td className="px-3 py-2">{r.age ?? "—"}</td>
