@@ -119,16 +119,12 @@ export function ManageNav({
   const dataCollection = (
     <>
       <NavLink href={`/manage/${portal}/registry`} icon={Users}>
-        Participant registry
+        CHII Participants
       </NavLink>
       <NavLink href={`/manage/${portal}/feedback-registry`} icon={MessageSquareText}>
-        Feedback registry
+        CHII Feedbacks
       </NavLink>
-      <NavLink href={`/manage/${portal}/chii-registry`} icon={Database}>CHII database</NavLink>
       <NavLink href={`/manage/${portal}/import`} icon={Upload}>Import a sheet</NavLink>
-      {portal === "admin" && (
-        <NavLink href={`/manage/${portal}/chii-registrations`} icon={Layers}>CHII registrations</NavLink>
-      )}
     </>
   );
 
@@ -218,6 +214,7 @@ export function ManageNav({
 
       <Section title="DATABASE" icon={Database}>
         <NavLink href={`/manage/${portal}/data`} icon={BarChart3}>Data for the dashboard</NavLink>
+        <NavLink href={`/manage/${portal}/chii-registry`} icon={Database}>CHII database</NavLink>
         {pillars.map(({ pillar }) => (
           <details key={pillar} className="group ml-1">
             <summary className="flex cursor-pointer list-none items-center gap-2 px-2.5 py-1.5 text-sm font-semibold text-white hover:text-[#BFD4F5] [&::-webkit-details-marker]:hidden">

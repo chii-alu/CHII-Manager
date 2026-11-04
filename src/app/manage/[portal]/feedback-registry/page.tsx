@@ -7,6 +7,7 @@ import { PillarChip } from "@/components/manage/Chips";
 import { formatDate } from "@/lib/dates";
 import { card } from "@/components/ui/styles";
 import { PageBand } from "@/components/ui/page-band";
+import { FilterBar } from "@/components/ui/filter-bar";
 
 type FeedbackRow = {
   satisfaction: number;
@@ -21,8 +22,15 @@ type FeedbackRow = {
 };
 
 // Every feedback response across the sessions of this portal, newest first.
-export default async function FeedbackRegistryPage({ params }: { params: Promise<{ portal: string }> }) {
+export default async function FeedbackRegistryPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ portal: string }>;
+  searchParams: Promise<{ pillar?: string; intervention?: string; from?: string; to?: string }>;
+}) {
   const { portal } = await params;
+  const filters = await searchParams;
   if (!isPortal(portal)) notFound();
   const copy = PORTAL_COPY[portal];
   const supabase = await createClient();
@@ -36,13 +44,29 @@ export default async function FeedbackRegistryPage({ params }: { params: Promise
     .order("submitted_at", { ascending: false });
   if (error) throw new Error(`Could not load feedback: ${error.message}`);
 
-  const rows = (data ?? []) as unknown as FeedbackRow[];
+  const all = (data ?? []) as unknown as FeedbackRow[];
+  const interventionOptions = [...new Set(all.map((r) => r.sessions.interventions?.name).filter(Boolean) as string[])].sort();
+  const pillarOptions = portal === "admin" ? ["HENT", "HEMP", "HECO"] : undefined;
+  const rows = all.filter((r) => {
+    if (filters.pillar && r.sessions.pillar !== filters.pillar) return false;
+    if (filters.intervention && r.sessions.interventions?.name !== filters.intervention) return false;
+    const day = r.submitted_at.slice(0, 10);
+    if (filters.from && day < filters.from) return false;
+    if (filters.to && day > filters.to) return false;
+    return true;
+  });
 
   return (
     <section className="flex flex-col gap-6">
-      <PageBand title="Feedback registry">
+      <PageBand title="CHII Feedbacks">
         <p className="mt-2 max-w-2xl text-muted">{copy.feedback}</p>
+        <div className="mt-3 inline-flex items-baseline gap-2 self-start rounded-xl bg-white/10 px-4 py-2.5 ring-1 ring-white/15">
+          <span className="font-display text-2xl font-semibold tabular-nums text-white">{rows.length}</span>
+          <span className="text-sm text-[#D8E4F3]">total feedbacks</span>
+        </div>
       </PageBand>
+
+      <FilterBar pillars={pillarOptions} interventions={interventionOptions} values={filters} />
 
       {rows.length === 0 ? (
         <div className={`${card} text-center text-muted`}>No feedback responses yet.</div>

@@ -60,7 +60,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ po
   return (
     <section className="flex flex-col gap-6">
       <div>
-        <Link href={`/manage/${portal}/registry`} className="text-sm text-accent hover:underline">← Participant registry</Link>
+        <Link href={`/manage/${portal}/registry`} className="text-sm text-accent hover:underline">← CHII Participants</Link>
         <PageBand title={p.name}>
           <p className="font-mono text-sm">
             {p.pid} · {p.email}
