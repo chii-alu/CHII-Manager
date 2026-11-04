@@ -85,7 +85,7 @@ describe("feedback templates", () => {
       "select i.name, t.title, jsonb_array_length(t.questions)::int n from feedback_template t join interventions i on i.id = t.intervention_id where t.audience = 'intern' order by i.name",
     );
     expect(r.rows).toEqual([
-      { name: "Career Workshops", title: "HealthX feedback", n: 13 },
+      { name: "Career Workshops", title: "Career Workshops feedback", n: 13 },
       { name: "Internships", title: "Internship feedback", n: 16 },
       { name: "SIE", title: "SIE feedback", n: 13 },
     ]);
@@ -94,15 +94,15 @@ describe("feedback templates", () => {
   it("refuses a question that is not in the field dictionary", async () => {
     await expect(
       db.query(
-        "update feedback_template set questions = '[{\"id\":\"no_such_field\",\"label\":\"x\",\"type\":\"text\",\"required\":false}]'::jsonb where title = 'HealthX feedback'",
+        "update feedback_template set questions = '[{\"id\":\"no_such_field\",\"label\":\"x\",\"type\":\"text\",\"required\":false}]'::jsonb where title = 'Career Workshops feedback'",
       ),
     ).rejects.toThrow(/not in the field dictionary/);
   });
 
   it("only staff of the intervention's pillar edit its template", async () => {
     // Row security silently skips the update for another pillar's staff.
-    await asUser(db, HECO_STAFF, "update feedback_template set title = 'hacked' where title = 'HealthX feedback'");
-    const still = await db.query<{ title: string }>("select title from feedback_template where title = 'HealthX feedback'");
+    await asUser(db, HECO_STAFF, "update feedback_template set title = 'hacked' where title = 'Career Workshops feedback'");
+    const still = await db.query<{ title: string }>("select title from feedback_template where title = 'Career Workshops feedback'");
     expect(still.rows).toHaveLength(1);
   });
 });
@@ -187,6 +187,17 @@ describe("feedback consent", () => {
       "select audience, bool_or(q->>'id' = 'consent' and q->>'type' = 'consent' and (q->>'required')::boolean) as ok from feedback_template, jsonb_array_elements(questions) q group by audience",
     );
     expect(r.rows.every((x) => x.ok)).toBe(true);
+  });
+});
+
+describe("career workshop feedback wording", () => {
+  it("uses Career Workshop wording and no HealthX wording", async () => {
+    const r = await db.query<{ title: string; text: string }>(
+      "select t.title, t.questions::text as text from feedback_template t join interventions i on i.id = t.intervention_id where i.name = 'Career Workshops' and t.audience = 'intern'",
+    );
+    expect(r.rows[0].title).toBe("Career Workshops feedback");
+    expect(r.rows[0].text).toContain("Career Workshop programme");
+    expect(r.rows[0].text).not.toContain("HealthX");
   });
 });
 
