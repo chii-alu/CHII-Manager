@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateRange, todayIso } from "@/lib/dates";
+import { formatDate, formatDateRange, todayIso } from "@/lib/dates";
 import { PillarChip, StatusChip, TypeChip } from "@/components/manage/Chips";
 import { STATUS_LABEL, type EntryStatus } from "@/lib/sessions/status";
 import { isCompleted } from "@/lib/rules/completion";
@@ -12,6 +12,16 @@ import { AnonymiseButton } from "@/components/manage/AnonymiseButton";
 import { PageBand } from "@/components/ui/page-band";
 import { PARTICIPANT_COLUMNS } from "@/lib/workbooks/columns";
 import { ArrowLeft } from "lucide-react";
+
+type FeedbackGiven = {
+  id: string;
+  session_id: string;
+  submitted_at: string;
+  satisfaction: number | null;
+  relevance: number | null;
+  nps: number | null;
+  sessions: { title: string; pillar: string; interventions: { name: string } | null } | null;
+};
 
 type Journey = {
   status: EntryStatus;
@@ -61,7 +71,11 @@ export default async function ParticipantPage({
       .select("status, sessions(id, title, pillar, kind, dates, completion_threshold, interventions(name))")
       .eq("participant_id", p.id),
     supabase.from("attendance").select("session_id, date").eq("participant_id", p.id),
-    supabase.from("feedback").select("session_id").eq("participant_id", p.id),
+    supabase
+      .from("feedback")
+      .select("id, session_id, submitted_at, satisfaction, relevance, nps, sessions(title, pillar, interventions(name))")
+      .eq("participant_id", p.id)
+      .order("submitted_at", { ascending: false }),
   ]);
 
   // Pillar views show only the sessions of that pillar, and a person with none there is not found.
@@ -70,6 +84,7 @@ export default async function ParticipantPage({
     .filter((j) => j.sessions && (!visible || visible.has(j.sessions.pillar)))
     .sort((a, b) => (a.sessions.dates[0] ?? "").localeCompare(b.sessions.dates[0] ?? ""));
   if (visible && journey.length === 0) notFound();
+  const feedbackGiven = ((feedback ?? []) as unknown as FeedbackGiven[]).filter((f) => f.sessions && (!visible || visible.has(f.sessions.pillar)));
   const today = todayIso();
 
   return (
@@ -108,12 +123,13 @@ export default async function ParticipantPage({
               const s = j.sessions;
               const eligible = s.kind === "application" ? j.status === "selected" : j.status === "registered";
               const attendedDays = (attendance ?? []).filter((a) => a.session_id === s.id).length;
-              const gaveFeedback = (feedback ?? []).some((f) => f.session_id === s.id);
+              const gaveFeedback = feedbackGiven.some((f) => f.session_id === s.id);
               return (
                 <li key={s.id}>
                   <Link href={`/manage/${portal}/sessions/${s.id}/forms`} className={`${card} grid items-center gap-3 sm:grid-cols-[auto_1fr_auto]`}>
                     <PillarChip pillar={s.pillar} />
                     <span>
+                      <span className="block font-mono text-xs text-muted">{p.pid}</span>
                       <span className="block font-semibold">{s.title}</span>
                       <span className="text-sm text-muted">
                         {s.interventions.name} · {formatDateRange(s.dates)} · <StatusChip status={sessionStatus(s.dates, today)} />
@@ -135,6 +151,46 @@ export default async function ParticipantPage({
               );
             })}
           </ul>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="font-display text-xl font-semibold">Feedback given</h2>
+        {feedbackGiven.length === 0 ? (
+          <div className={`${card} text-muted`}>No feedback yet.</div>
+        ) : (
+          <div className="overflow-x-auto rounded-[10px] border border-line bg-surface">
+            <table className="w-full border-collapse text-sm">
+              <thead className="bg-brand text-left text-xs font-semibold text-on-accent">
+                <tr>
+                  <th className="px-3 py-2">CHII ID</th>
+                  <th className="px-3 py-2">Date</th>
+                  <th className="px-3 py-2">Intervention</th>
+                  <th className="px-3 py-2">Session</th>
+                  <th className="px-3 py-2 text-right">Satisfaction</th>
+                  <th className="px-3 py-2 text-right">Relevance</th>
+                  <th className="px-3 py-2 text-right">NPS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {feedbackGiven.map((f) => (
+                  <tr key={f.id} className="border-t border-line align-top">
+                    <td className="px-3 py-2 font-mono text-xs">{p.pid}</td>
+                    <td className="whitespace-nowrap px-3 py-2">{formatDate(f.submitted_at.slice(0, 10))}</td>
+                    <td className="px-3 py-2">{f.sessions?.interventions?.name ?? "—"}</td>
+                    <td className="px-3 py-2">
+                      <Link href={`/manage/${portal}/sessions/${f.session_id}/feedback`} className="font-semibold text-accent hover:underline">
+                        {f.sessions?.title ?? "—"}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums">{f.satisfaction ?? "—"}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{f.relevance ?? "—"}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{f.nps ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </section>

@@ -1,6 +1,7 @@
 // Column order for the consolidated workbooks (WORKBOOKS-AND-FLEXIBLE-FIELDS §2 and §3).
 // A null key is a spec column that no form asks yet: it stays in the file, empty.
 export const PARTICIPANT_COLUMNS: [string, string][] = [
+  ["chii_id", "CHII ID"],
   ["email", "Email"],
   ["names", "Names"],
   ["enrollment_status", "Enrollment Status"],

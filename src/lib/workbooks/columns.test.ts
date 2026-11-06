@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import { FEEDBACK_COLUMNS, PARTICIPANT_COLUMNS } from "./columns";
 
 describe("workbook columns", () => {
-  it("has the spec's 21 participant columns, in order", () => {
-    expect(PARTICIPANT_COLUMNS).toHaveLength(21);
-    expect(PARTICIPANT_COLUMNS[0][1]).toBe("Email");
-    expect(PARTICIPANT_COLUMNS[20][1]).toBe("Times supported (incl. repeats)");
+  it("has the CHII ID, then the spec's 21 participant columns, in order", () => {
+    expect(PARTICIPANT_COLUMNS).toHaveLength(22);
+    expect(PARTICIPANT_COLUMNS[0][1]).toBe("CHII ID");
+    expect(PARTICIPANT_COLUMNS[1][1]).toBe("Email");
+    expect(PARTICIPANT_COLUMNS[21][1]).toBe("Times supported (incl. repeats)");
   });
 
   it("has the spec's 19 feedback columns, in order", () => {

@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("the front page is the Intervention Manager sign-in", async ({ page }) => {
+test("the front page is the CHII Program Manager sign-in", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Welcome Back" })).toBeVisible();
-  await expect(page.getByText("Intervention Manager")).toBeVisible();
+  await expect(page.getByText("CHII Program Manager")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 });
 

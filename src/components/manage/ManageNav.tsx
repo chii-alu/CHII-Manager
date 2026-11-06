@@ -225,20 +225,8 @@ export function ManageNav({
               </span>
             </summary>
             <div className="flex flex-col">
-              <a
-                href={`/api/workbooks/${pillar}?type=participants`}
-                download
-                className="sidebar-link rounded-md px-2.5 py-1.5 pl-6 text-sm text-[#D8E4F3] hover:bg-white/10 hover:text-white"
-              >
-                <span className="sidebar-label">{pillar} Participant Consolidated Database</span>
-              </a>
-              <a
-                href={`/api/workbooks/${pillar}?type=feedback`}
-                download
-                className="sidebar-link rounded-md px-2.5 py-1.5 pl-6 text-sm text-[#D8E4F3] hover:bg-white/10 hover:text-white"
-              >
-                <span className="sidebar-label">{pillar} Feedback Consolidated Database</span>
-              </a>
+              <NavLink href={`/manage/${portal}/database/${pillar}/participants`}>Participants</NavLink>
+              <NavLink href={`/manage/${portal}/database/${pillar}/feedback`}>Feedback</NavLink>
             </div>
           </details>
         ))}

@@ -46,6 +46,7 @@ export default async function RegistryPage({
       sessions,
       attended,
       interventionNames,
+      interventions: interventionNames,
       sessionDates,
     };
   }).filter((r) => portal === "admin" || r.pillars.some((pillar) => visible.includes(pillar as (typeof visible)[number])));
@@ -70,6 +71,7 @@ export default async function RegistryPage({
     age: r.age,
     country: r.country,
     pillars: r.pillars,
+    interventions: r.interventionNames,
     sessions: r.sessions,
     attended: r.attended,
   }));
