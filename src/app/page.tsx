@@ -50,7 +50,7 @@ export default async function LoginPage({
         <div className="flex w-full flex-col justify-between px-11 py-8 lg:w-1/2">
           <div className="mx-auto w-full max-w-[19rem]">
             <h1 className="font-display text-[34px] font-semibold leading-[1.05] tracking-[-0.015em] text-ink">Welcome Back</h1>
-            <p className="mt-2 text-sm leading-relaxed text-muted">Please sign in to access the Intervention Manager</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">Please sign in to access the CHII Program Manager</p>
 
             {error && messages[error] && (
               <p role="alert" className="mt-5 rounded-md bg-bad-soft p-3 text-sm text-bad-ink">

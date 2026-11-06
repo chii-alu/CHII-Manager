@@ -14,6 +14,7 @@ export type RegistryRow = {
   age: string | null;
   country: string | null;
   pillars: string[];
+  interventions: string[];
   sessions: number;
   attended: number;
 };
@@ -51,6 +52,7 @@ export function RegistryTable({ rows }: { rows: RegistryRow[] }) {
                 <th className="px-3 py-2">Age</th>
                 <th className="px-3 py-2">Country</th>
                 <th className="px-3 py-2">Pillars</th>
+                <th className="px-3 py-2">Intervention</th>
                 <th className="px-3 py-2 text-right">Sessions</th>
                 <th className="px-3 py-2 text-right">Attended</th>
               </tr>
@@ -75,6 +77,7 @@ export function RegistryTable({ rows }: { rows: RegistryRow[] }) {
                       ))}
                     </span>
                   </td>
+                  <td className="px-3 py-2">{r.interventions.length > 0 ? r.interventions.join(", ") : "—"}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.sessions}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.attended}</td>
                 </tr>
