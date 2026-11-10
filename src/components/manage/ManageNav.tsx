@@ -70,6 +70,24 @@ function NavLink({
   );
 }
 
+// A sidebar group heading that is itself a link: an icon and a small-caps heading, with no list under it.
+function SectionLink({ href, title, icon: Icon }: { href: string; title: string; icon: LucideIcon }) {
+  const pathname = usePathname();
+  const active = pathname === href || pathname.startsWith(href + "/");
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`flex items-center gap-2 px-2.5 pb-2 pt-5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4F93E0] ${
+        active ? "text-white" : "text-[#8FB0F5]"
+      }`}
+    >
+      <Icon size={13} aria-hidden />
+      <span className="sidebar-label">{title}</span>
+    </Link>
+  );
+}
+
 // A sidebar group: an icon and a small-caps heading, folded open or shut.
 function Section({
   title,
@@ -140,7 +158,7 @@ export function ManageNav({
 
       {portal === "admin" ? (
         <>
-          <Section title="OVERVIEW" icon={Home}>{overview}</Section>
+          <SectionLink href={`/manage/${portal}`} title="OVERVIEW" icon={Home} />
           <Section title="DATA COLLECTION" icon={FolderOpen}>{dataCollection}</Section>
         </>
       ) : (
